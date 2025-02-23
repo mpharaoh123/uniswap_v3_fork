@@ -4,6 +4,9 @@ import singleSwapToken from "./SingleSwapToken.json";
 import swapMultiHop from "./SwapMultiHop.json";
 import IWETH from "./IWETH.json";
 import userStorgeData from "./UserStorageData.json";
+import poolDataList from "./poolData.json";
+
+export const poolData = poolDataList.tokens;
 
 //BOOTOKEN
 export const BooTokenAddress = "0xdB05A386810c809aD5a77422eb189D36c7f24402";

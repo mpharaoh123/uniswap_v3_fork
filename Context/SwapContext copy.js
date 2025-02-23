@@ -3,7 +3,7 @@ import { ethers, BigNumber } from "ethers";
 import Web3Modal from "web3modal";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
 import axios from "axios";
-import { poolData } from "./constants";
+import {ERC20_ABI, poolData} from "./constants";
 
 //INTERNAL IMPORT
 import {
@@ -25,7 +25,7 @@ import { getLiquidityData } from "../Utils/checkLiquidity";
 import { connectingWithPoolContract } from "../Utils/deployPool";
 
 import { IWETHABI } from "./constants";
-import ERC20 from "./ERC20.json";
+// import ERC20 from "./ERC20.json";
 
 export const SwapTokenContext = React.createContext();
 
@@ -42,83 +42,82 @@ export const SwapTokenContextProvider = ({ children }) => {
   //TOP TOKENS
   const [topTokensList, setTopTokensList] = useState([]);
 
-  const addToken = [poolData.map((token) => token.id)];
-
+  const addToken = [poolData.map(token => token.id)];
+  // console.log(addToken);
+  
   //FETCH DATA
   const fetchingData = async () => {
     try {
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const contract = new ethers.Contract(
+        "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+        ERC20_ABI,
+        provider
+      );
+      const balance = await contract.balanceOf(accounts[0]);
+      console.log("balance", balance.toString());
+      
+
+
       //GET USER ACCOUNT
-      const userAccount = await checkIfWalletConnected();
-      setAccount(userAccount);
+      // const userAccount = await checkIfWalletConnected();
+      // setAccount(userAccount);
+      // //CREATE PROVIDER
+      // const web3modal = new Web3Modal();
+      // const connection = await web3modal.connect();
+      // const provider = new ethers.providers.Web3Provider(window.ethereum);
+      // //CHECK Balance
+      // const balance = await provider.getBalance(userAccount);
+      // const convertBal = BigNumber.from(balance).toString();
+      // const ethValue = ethers.utils.formatEther(convertBal);
+      // setEther(ethValue);
 
-      //CREATE PROVIDER
-      const web3modal = new Web3Modal();
-      const connection = await web3modal.connect();
-      const provider = new ethers.providers.Web3Provider(connection);
-      //CHECK Balance
-      const balance = await provider.getBalance(userAccount);
-      const convertBal = BigNumber.from(balance).toString();
-      const ethValue = ethers.utils.formatEther(convertBal);
-      console.log("ethValue", ethValue);
-      setEther(ethValue);
-
-      //GET NETWORK
-      const network = await provider.getNetwork();
-      setNetworkConnect(network.name);
+      // //GET NETWORK
+      // const newtork = await provider.getNetwork();
+      // setNetworkConnect(newtork.name);
 
       //ALL TOKEN BALANCE AND DATA
-      addToken.map(async (el, i) => {
-        const contract = new ethers.Contract(
-          "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-          ERC20,
-          provider
-        );
-        console.log("contract", contract);
-        console.log("balanceOf", await contract.balanceOf(userAccount));
-        const userBalance = await contract.balanceOf(userAccount);
-        console.log("userBalance", userBalance);
-        const tokenLeft = BigNumber.from(userBalance).toString();
-        const convertTokenBal = ethers.utils.formatEther(tokenLeft);
-        console.log("convertTokenBal", convertTokenBal);
-
+      // addToken.map(async (el, i) => {
         //GETTING CONTRACT
-        //   const contract = new ethers.Contract(el, ERC20, provider);
-        //// GETTING BALANCE OF TOKEN
-        //   const userBalance = await contract.balanceOf(userAccount);
-        //   const tokenLeft = BigNumber.from(userBalance).toString();
-        //   const convertTokenBal = ethers.utils.formatEther(tokenLeft);
-        //   console.log("convertTokenBal", convertTokenBal);
+        // const contract = new ethers.Contract("0xdAC17F958D2ee523a2206206994597C13D831ec7", ERC20, provider);
+        //GETTING BALANCE OF TOKEN
+        // const userBalance = await contract.balanceOf(userAccount);
+        // const tokenLeft = BigNumber.from(userBalance).toString();
+        // const convertTokenBal = ethers.utils.formatEther(tokenLeft);
+        // //GET NAME AND SYMBOL
 
-        //   //GET NAME AND SYMBOL
+        // const symbol = await contract.symbol();
+        // const name = await contract.name();
 
-        //   const symbol = await contract.symbol();
-        //   const name = await contract.name();
-
-        //   tokenData.push({
-        //     name: name,
-        //     symbol: symbol,
-        //     tokenBalance: convertTokenBal,
-        // tokenAddress: el,
+        // tokenData.push({
+        //   name: name,
+        //   symbol: symbol,
+        //   tokenBalance: convertTokenBal,
+        //   tokenAddress: el,
         // });
-      });
+      // });
 
       // //GET LIQUDITY
-      const userStorageData = await connectingWithUserStorageContract();
-      const userLiquidity = await userStorageData.getAllTransactions();
-      console.log(userLiquidity);
+      // const userStorageData = await connectingWithUserStorageContract();
+      // const userLiquidity = await userStorageData.getAllTransactions();
+      // console.log(userLiquidity);
 
-      userLiquidity.map(async (el, i) => {
-        const liquidityData = await getLiquidityData(
-          el.poolAddress,
-          el.tokenAddress0,
-          el.tokenAddress1
-        );
+      // userLiquidity.map(async (el, i) => {
+      //   const liquidityData = await getLiquidityData(
+      //     el.poolAddress,
+      //     el.tokenAddress0,
+      //     el.tokenAddress1
+      //   );
 
-        getAllLiquidity.push(liquidityData);
-        console.log(getAllLiquidity);
-      });
+      //   getAllLiquidity.push(liquidityData);
+      //   console.log(getAllLiquidity);
+      // });
 
-      console.log("poolData", poolData);
       setTopTokensList(poolData);
     } catch (error) {
       console.log(error);
