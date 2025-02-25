@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ethers, BigNumber } from "ethers";
+import { ethers, BigNumber, errors } from "ethers";
 import Web3Modal from "web3modal";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
 import axios from "axios";
@@ -42,8 +42,6 @@ export const SwapTokenContextProvider = ({ children }) => {
   //TOP TOKENS
   const [topTokensList, setTopTokensList] = useState([]);
 
-  const addToken = [poolData.map((token) => token.id)];
-
   //FETCH DATA
   const fetchingData = async () => {
     try {
@@ -67,45 +65,42 @@ export const SwapTokenContextProvider = ({ children }) => {
       setNetworkConnect(network.name);
 
       //ALL TOKEN BALANCE AND DATA
-      addToken.map(async (el, i) => {
-        const contract = new ethers.Contract(
-          "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-          ERC20,
-          provider
+      const fetchedTokenData = [];
+      for (const el of poolData) {
+        // poolData.map(async (el, i) => {
+        const contract = new ethers.Contract(el.id, ERC20, provider);
+        // console.log("i====== token", i, el.name);
+        const ercBalance = await contract.balanceOf(userAccount);
+        // const userBalance = await contract.balanceOf(userAccount);
+        // const tokenLeft = BigNumber.from(userBalance).toString();
+        // const convertTokenBal = ethers.utils.formatEther(tokenLeft);
+        const convertTokenBal = ethers.utils.formatUnits(
+          ercBalance,
+          el.decimals
         );
-        console.log("contract", contract);
-        console.log("balanceOf", await contract.balanceOf(userAccount));
-        const userBalance = await contract.balanceOf(userAccount);
-        console.log("userBalance", userBalance);
-        const tokenLeft = BigNumber.from(userBalance).toString();
-        const convertTokenBal = ethers.utils.formatEther(tokenLeft);
-        console.log("convertTokenBal", convertTokenBal);
-
-        //GETTING CONTRACT
-        //   const contract = new ethers.Contract(el, ERC20, provider);
-        //// GETTING BALANCE OF TOKEN
-        //   const userBalance = await contract.balanceOf(userAccount);
-        //   const tokenLeft = BigNumber.from(userBalance).toString();
-        //   const convertTokenBal = ethers.utils.formatEther(tokenLeft);
-        //   console.log("convertTokenBal", convertTokenBal);
-
+        // console.log("convertTokenBal", convertTokenBal);
         //   //GET NAME AND SYMBOL
-
         //   const symbol = await contract.symbol();
         //   const name = await contract.name();
-
-        //   tokenData.push({
-        //     name: name,
-        //     symbol: symbol,
-        //     tokenBalance: convertTokenBal,
-        // tokenAddress: el,
-        // });
-      });
+        const existingToken = fetchedTokenData.find(
+          (token) => token.tokenAddress === el.id
+        );
+        if (!existingToken) {
+          fetchedTokenData.push({
+            name: el.name,
+            symbol: el.symbol,
+            tokenBalance: convertTokenBal,
+            tokenAddress: el.id,
+          });
+        }
+      }
+      setTokenData(fetchedTokenData);
+      console.log("tokenData", tokenData);
 
       // //GET LIQUDITY
       const userStorageData = await connectingWithUserStorageContract();
       const userLiquidity = await userStorageData.getAllTransactions();
-      console.log(userLiquidity);
+      console.log("userLiquidity", userLiquidity);
 
       userLiquidity.map(async (el, i) => {
         const liquidityData = await getLiquidityData(
@@ -115,10 +110,9 @@ export const SwapTokenContextProvider = ({ children }) => {
         );
 
         getAllLiquidity.push(liquidityData);
-        console.log(getAllLiquidity);
+        console.log("getAllLiquidity", getAllLiquidity);
       });
 
-      console.log("poolData", poolData);
       setTopTokensList(poolData);
     } catch (error) {
       console.log(error);
