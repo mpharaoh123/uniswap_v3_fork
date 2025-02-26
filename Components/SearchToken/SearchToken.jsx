@@ -9,10 +9,10 @@ const SearchToken = ({ openToken, tokens, tokenData }) => {
   //USESTATE
   const [active, setActive] = useState(1);
    
-  let tokenList = [];
-  for (let i = 0; i < tokenData.length; i++) {
-    if (i % 2 == 1) tokenList.push(tokenData[i]);
-  }
+  // let tokenList = [];
+  // for (let i = 0; i < tokenData.length; i++) {
+  //   if (i % 2 == 1) tokenList.push(tokenData[i]);
+  // }
 
   return (
     <div className={Style.SearchToken}>
@@ -36,7 +36,7 @@ const SearchToken = ({ openToken, tokens, tokenData }) => {
         </div>
 
         <div className={Style.SearchToken_box_tokens}>
-          {tokenList.map((el, i) => (
+          {tokenData.map((el, i) => (
             <span
               key={i + 1}
               className={active == i + 1 ? `${Style.active}` : ""}

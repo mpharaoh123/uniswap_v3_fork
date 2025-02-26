@@ -4,13 +4,18 @@ import Image from "next/image";
 //INTERNAL IMPORT
 import Style from "./TokenList.module.css";
 import images from "../../assets";
+import { SwapTokenContext } from "../../Context/SwapContext";
 
 const TokenList = ({ tokenDate, setOpenTokenBox }) => {
-
-  let tokenList = [];
-  for (let i = 0; i < tokenDate.length; i++) {
+  // const { tokenData } = useContext(SwapTokenContext);
+  // let tokenList = [];
+  /*   for (let i = 0; i < tokenDate.length; i++) {
     if (i % 2 == 1) tokenList.push(tokenDate[i]);
-  }
+  } */
+
+  useEffect(() => {
+    console.log("tokenlist Token Data:", tokenDate);
+  }, [tokenDate]);
 
   return (
     <div className={Style.TokenList}>
@@ -24,7 +29,7 @@ const TokenList = ({ tokenDate, setOpenTokenBox }) => {
         <h2>Your Token List</h2>
       </div>
 
-      {tokenList.map((el, i) => (
+      {tokenDate.map((el, i) => (
         <div className={Style.TokenList_box}>
           <div className={Style.TokenList_box_info}>
             <p className={Style.TokenList_box_info_symbol}>{el.symbol}</p>

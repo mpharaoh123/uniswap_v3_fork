@@ -25,19 +25,19 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
 
   //TOKEN 1
   const [tokenOne, setTokenOne] = useState({
-    name: "",
-    image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
+    name: tokenData[0].name,
+    image: images.etherlogo,
+    symbol: tokenData[0].symbol,
+    tokenBalance: tokenData[0].tokenBalance,
+    tokenAddress: tokenData[0].tokenAddress,
   });
   //TOKEN 2
   const [tokenTwo, setTokenTwo] = useState({
-    name: "",
-    image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
+    name: tokenData[1].name,
+    image: images.etherlogo,
+    symbol: tokenData[1].symbol,
+    tokenBalance: tokenData[1].tokenBalance,
+    tokenAddress: tokenData[1].tokenAddress,
   });
 
   const feePairs = [
@@ -260,10 +260,24 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             </div>
 
             {/* BUTTON */}
-
             <div className={Style.PoolAdd_box_price_right_amount}>
               <button
-                onClick={() =>
+                onClick={() => {
+                  console.log(
+                    "tokenAddress0:",
+                    tokenOne.tokenAddress.tokenAddress
+                  );
+                  console.log(
+                    "tokenAddress1:",
+                    tokenTwo.tokenAddress.tokenAddress
+                  );
+                  console.log("fee:", fee);
+                  console.log("tokenPrice1 (minPrice):", minPrice);
+                  console.log("tokenPrice2 (maxPrice):", maxPrice);
+                  console.log("slippage:", slippage);
+                  console.log("deadline:", deadline);
+                  console.log("tokenAmountOne:", tokenAmountOne);
+                  console.log("tokenAmountTwo:", tokenAmountTwo);
                   createLiquidityAndPool({
                     tokenAddress0: tokenOne.tokenAddress.tokenAddress,
                     tokenAddress1: tokenTwo.tokenAddress.tokenAddress,
@@ -274,8 +288,8 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
                     deadline: deadline,
                     tokenAmmountOne: tokenAmountOne,
                     tokenAmmountTwo: tokenAmountTwo,
-                  })
-                }
+                  });
+                }}
               >
                 Add Liquidity
               </button>
