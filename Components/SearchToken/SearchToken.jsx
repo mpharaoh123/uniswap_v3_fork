@@ -5,14 +5,9 @@ import Image from "next/image";
 import Style from "./SearchToken.module.css";
 import images from "../../assets";
 
-const SearchToken = ({ openToken, tokens, tokenData }) => {
+const SearchToken = ({ openToken, tokens, tokenData, defaultActiveIndex }) => {
   //USESTATE
-  const [active, setActive] = useState(1);
-   
-  // let tokenList = [];
-  // for (let i = 0; i < tokenData.length; i++) {
-  //   if (i % 2 == 1) tokenList.push(tokenData[i]);
-  // }
+  const [active, setActive] = useState(defaultActiveIndex || 1);
 
   return (
     <div className={Style.SearchToken}>
@@ -32,7 +27,7 @@ const SearchToken = ({ openToken, tokens, tokenData }) => {
           <div className={Style.SearchToken_box_search_img}>
             <Image src={images.search} alt="img" width={20} height={20} />
           </div>
-          <input type="text" placeholder="Search name and past the address" />
+          <input type="text" placeholder="Search name or paste the address" />
         </div>
 
         <div className={Style.SearchToken_box_tokens}>
@@ -48,7 +43,8 @@ const SearchToken = ({ openToken, tokens, tokenData }) => {
                   symbol: el.symbol,
                   tokenBalance: el.tokenBalance,
                   tokenAddress: el,
-                })
+                }),
+                openToken(false)
               )}
             >
               <Image

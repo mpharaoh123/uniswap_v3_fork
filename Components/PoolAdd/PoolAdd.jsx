@@ -25,19 +25,19 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
 
   //TOKEN 1
   const [tokenOne, setTokenOne] = useState({
-    name: tokenData[0].name,
+    name: tokenData[2].name,
     image: images.etherlogo,
-    symbol: tokenData[0].symbol,
-    tokenBalance: tokenData[0].tokenBalance,
-    tokenAddress: tokenData[0].tokenAddress,
+    symbol: tokenData[2].symbol,
+    tokenBalance: tokenData[2].tokenBalance,
+    tokenAddress: tokenData[2].tokenAddress,
   });
   //TOKEN 2
   const [tokenTwo, setTokenTwo] = useState({
-    name: tokenData[1].name,
+    name: tokenData[9].name,
     image: images.etherlogo,
-    symbol: tokenData[1].symbol,
-    tokenBalance: tokenData[1].tokenBalance,
-    tokenAddress: tokenData[1].tokenAddress,
+    symbol: tokenData[9].symbol,
+    tokenBalance: tokenData[9].tokenBalance,
+    tokenAddress: tokenData[9].tokenAddress,
   });
 
   const feePairs = [
@@ -263,21 +263,21 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             <div className={Style.PoolAdd_box_price_right_amount}>
               <button
                 onClick={() => {
-                  console.log(
-                    "tokenAddress0:",
-                    tokenOne.tokenAddress.tokenAddress
-                  );
-                  console.log(
-                    "tokenAddress1:",
-                    tokenTwo.tokenAddress.tokenAddress
-                  );
-                  console.log("fee:", fee);
-                  console.log("tokenPrice1 (minPrice):", minPrice);
-                  console.log("tokenPrice2 (maxPrice):", maxPrice);
-                  console.log("slippage:", slippage);
-                  console.log("deadline:", deadline);
-                  console.log("tokenAmountOne:", tokenAmountOne);
-                  console.log("tokenAmountTwo:", tokenAmountTwo);
+                  // console.log(
+                  //   "tokenAddress0:",
+                  //   tokenOne.tokenAddress.tokenAddress
+                  // );
+                  // console.log(
+                  //   "tokenAddress1:",
+                  //   tokenTwo.tokenAddress.tokenAddress
+                  // );
+                  // console.log("fee:", fee);
+                  // console.log("tokenPrice1 (minPrice):", minPrice);
+                  // console.log("tokenPrice2 (maxPrice):", maxPrice);
+                  // console.log("slippage:", slippage);
+                  // console.log("deadline:", deadline);
+                  // console.log("tokenAmountOne:", tokenAmountOne);
+                  // console.log("tokenAmountTwo:", tokenAmountTwo);
                   createLiquidityAndPool({
                     tokenAddress0: tokenOne.tokenAddress.tokenAddress,
                     tokenAddress1: tokenTwo.tokenAddress.tokenAddress,
@@ -314,6 +314,7 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             openToken={setOpenTokenModelOne}
             tokens={setTokenOne}
             tokenData={tokenData}
+            defaultActiveIndex={3}
           />
         </div>
       )}
@@ -324,6 +325,7 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             openToken={setOpenTokenModelTwo}
             tokens={setTokenTwo}
             tokenData={tokenData}
+            defaultActiveIndex={10}
           />
         </div>
       )}

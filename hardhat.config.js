@@ -17,13 +17,14 @@ module.exports = {
       },
     ],
   },
-  // networks: {
-  //   hardhat: {
-  //     forking: {
-  //       url: "https://rpc.ankr.com/eth",
-  //     },
-  //   },
-  // },
+  networks: {
+    fork: {
+      url: "https://eth-mainnet.alchemyapi.io/v2/R5isWrM_WquQc56tWScIZN5i-v0KEVSz", // 替换 YOUR_ALCHEMY_API_KEY 为你的 API 密钥
+      accounts: [
+        "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      ],
+    },
+  },
 };
 
 // require("@nomiclabs/hardhat-waffle");

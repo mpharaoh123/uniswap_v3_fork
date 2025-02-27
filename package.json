@@ -2,7 +2,6 @@
   "name": "uniswapclone",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://api.chainbase.com",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",

@@ -123,6 +123,16 @@ export const SwapTokenContextProvider = ({ children }) => {
     fetchingData();
   }, []);
 
+  const sortAddresses = (address1, address2) => {
+    const lowerAddress1 = address1.toLowerCase();
+    const lowerAddress2 = address2.toLowerCase();
+    if (lowerAddress1 < lowerAddress2) {
+      return [address1, address2];
+    } else {
+      return [address2, address1];
+    }
+  };
+
   //CREATE AND ADD LIQUIDITY
   const createLiquidityAndPool = async ({
     tokenAddress0,
@@ -136,6 +146,17 @@ export const SwapTokenContextProvider = ({ children }) => {
     tokenAmmountTwo,
   }) => {
     try {
+      tokenAddress0 = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+      tokenAddress1 = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
+      fee = 3000; //0.3%
+      tokenPrice1 = 10;
+      tokenPrice2 = 1000;
+      tokenAmmountOne = 1000;
+      tokenAmmountTwo = 100;
+
+      tokenAddress0,
+        (tokenAddress1 = sortAddresses(tokenAddress0, tokenAddress1));
+
       console.log(
         tokenAddress0,
         tokenAddress1,
@@ -147,16 +168,14 @@ export const SwapTokenContextProvider = ({ children }) => {
         tokenAmmountOne,
         tokenAmmountTwo
       );
+
       //CREATE POOL
       const createPool = await connectingWithPoolContract(
         tokenAddress0,
         tokenAddress1,
         fee,
         tokenPrice1,
-        tokenPrice2,
-        {
-          gasLimit: 500000,
-        }
+        tokenPrice2
       );
 
       const poolAddress = createPool;

@@ -6,14 +6,16 @@ import Style from "./PoolConnect.module.css";
 import images from "../../assets";
 
 const PoolConnect = ({ setClosePool, getAllLiquidity, account }) => {
-  console.log(getAllLiquidity);
+
+  console.log("account", account);
+  console.log("getAllLiquidity", getAllLiquidity);
 
   let tokenList = [];
   for (let i = 0; i < getAllLiquidity.length; i++) {
     if (i % 2 == 1) tokenList.push(getAllLiquidity[i]);
   }
 
-  console.log(tokenList);
+  console.log("poolconnect tokenList", tokenList);
   return (
     <div className={Style.PoolConnect}>
       <div className={Style.PoolConnect_box}>

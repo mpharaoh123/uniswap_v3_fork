@@ -13,6 +13,11 @@ const Pool = () => {
     useContext(SwapTokenContext);
 
   const [closePool, setClosePool] = useState(false);
+
+  useEffect(() => {
+    console.log("closePool value:", closePool);
+  }, [closePool]);
+
   return (
     <div className={Style.Pool}>
       {closePool ? (
