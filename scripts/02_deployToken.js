@@ -16,8 +16,8 @@ async function main() {
 }
 
 /*
-  npx hardhat run --network localhost scripts/deployToken.js
-  */
+  npx hardhat run --network localhost scripts/02_deployToken.js
+*/
 
 main()
   .then(() => process.exit(0))

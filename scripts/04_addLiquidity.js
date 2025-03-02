@@ -1,17 +1,17 @@
 // Token addresses
-shoaibAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
-rayyanAddrss = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
-popUpAddress = "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6";
-
-SHO_RAY = "0xEED35b5e260d3Da1741B3967Ad15127A802a2d80";
+shoaibAddress= '0xABc84968376556B5e5B3C3bda750D091a06De536'
+rayyanAddrss= '0xFf8FA9381caf61cB3368a6ec0b3F5C788028D0Cd'
+popUpAddress= '0xE55cc27460B55c8aC7E73043F38b537758C9E51e'
 
 // Uniswap contract address
-wethAddress = "0xb6057e08a11da09a998985874FE2119e98dB3D5D";
-factoryAddress = "0xad203b3144f8c09a20532957174fc0366291643c";
-swapRouterAddress = "0x31403b1e52051883f2Ce1B1b4C89f36034e1221D";
-nftDescriptorAddress = "0x4278C5d322aB92F1D876Dd7Bd9b44d1748b88af2";
-positionDescriptorAddress = "0x0D92d35D311E54aB8EEA0394d7E773Fc5144491a";
-positionManagerAddress = "0x24EcC5E6EaA700368B8FAC259d3fBD045f695A08";
+wethAddress= '0x90A3B384F62f43Ba07938EA43aEEc35c2aBfeCa2'
+factoryAddress= '0x43c5DF0c482c88Cef8005389F64c362eE720A5bC'
+swapRouterAddress= '0x2098cb47B17082Ab6969FB2661f2759A9BF357c4'
+nftDescriptorAddress= '0xF01f4567586c3A707EBEC87651320b2dd9F4A287'
+positionDescriptorAddress= '0x2B07F89c9F574a890F5B8b7FddAfbBaE40f6Fde2'
+positionManagerAddress= '0xCaC60200c1Cb424f2C1e438c7Ee1B98d487f0254'
+
+SHO_RAY = "0xdf609F128Be22b7f0A326B4b8475A25467D60074";
 
 const artifacts = {
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
@@ -32,7 +32,6 @@ async function getPoolData(poolContract) {
     poolContract.slot0(),
   ]);
 
-  console.log(tickSpacing, fee, liquidity, slot0);
   return {
     tickSpacing: tickSpacing,
     fee: fee,
@@ -43,19 +42,16 @@ async function getPoolData(poolContract) {
 }
 
 async function main() {
-  const MAINNET_URL = "test network your";
-
-  const WALLET_ADDRESS = "Address";
-  const WALLET_SECRET = "Your Wallet Private Key";
+  const MAINNET_URL = "https://rpc.ankr.com/eth";
   const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
-  const wallet = new ethers.Wallet(WALLET_SECRET);
-  const signer = wallet.connect(provider);
+  const [_owner, signer] = await ethers.getSigners();
 
   const ShoaibContract = new Contract(
     shoaibAddress,
     artifacts.Shoaib.abi,
     provider
   );
+
   const RayyanContract = new Contract(
     rayyanAddrss,
     artifacts.Rayyan.abi,
@@ -63,7 +59,7 @@ async function main() {
   );
 
   await ShoaibContract.connect(signer).approve(
-    positionManagerAddress, 
+    positionManagerAddress,
     ethers.utils.parseEther("599900")
   );
   await RayyanContract.connect(signer).approve(
@@ -77,7 +73,9 @@ async function main() {
     provider
   );
 
+  console.log("getPoolData", getPoolData);
   const poolData = await getPoolData(poolContract);
+  console.log("poolData", poolData);
 
   const ShoaibToken = new Token(5, shoaibAddress, 18, "Shoaib", "SHO");
   const RayyanToken = new Token(5, rayyanAddrss, 18, "Rayyan", "RAY");
@@ -119,7 +117,7 @@ async function main() {
     amount1Desired: amount1Desired.toString(),
     amount0Min: amount0Desired.toString(),
     amount1Min: amount1Desired.toString(),
-    recipient: WALLET_ADDRESS,
+    recipient: signer.address,
     deadline: Math.floor(Date.now() / 1000) + 60 * 10,
   };
 
@@ -137,7 +135,7 @@ async function main() {
 }
 
 /*
-  npx hardhat run --network localhost scripts/addLiquidity.js
+  npx hardhat run --network localhost scripts/04_addLiquidity.js
   */
 
 main()

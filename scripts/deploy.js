@@ -1,17 +1,6 @@
 const hre = require("hardhat");
 
 async function main() {
-  //ERC20 BOO TOKEN
-  // const BooToken = await hre.ethers.getContractFactory("BooToken");
-  // const booToken = await BooToken.deploy();
-  // await booToken.deployed();
-  // console.log(`BOO deployed to ${booToken.address}`);
-
-  //ERC20 LIFE TOKEN
-  // const LifeToken = await hre.ethers.getContractFactory("LifeToken");
-  // const lifeToken = await LifeToken.deploy();
-  // await lifeToken.deployed();
-  // console.log(`LIfe deployed to ${lifeToken.address}`);
 
   const gasPrice = await hre.ethers.provider.getGasPrice();
   const maxFeePerGas = gasPrice.mul(2); // 将燃气费翻倍
@@ -39,6 +28,8 @@ async function main() {
   await userStorageData.deployed({ maxFeePerGas, maxPriorityFeePerGas });
   console.log(`UserStorageData deployed to ${userStorageData.address}`);
 }
+
+// npx hardhat run --network localhost scripts/deploy.js
 
 main().catch((error) => {
   console.error(error);

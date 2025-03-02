@@ -1,15 +1,15 @@
 // Token addresses
-shoaibAddress= '0xf4fa0d1C10c47cDe9F65D56c3eC977CbEb13449A'
-rayyanAddrss= '0xA343B1FC2897b8C49A72A9A0B2675cB9c7664e8c'
-popUpAddress= '0x88B9Ad010A699Cc0c8C5C5EA8bAF90A0C375df1a'
+shoaibAddress= '0xABc84968376556B5e5B3C3bda750D091a06De536'
+rayyanAddrss= '0xFf8FA9381caf61cB3368a6ec0b3F5C788028D0Cd'
+popUpAddress= '0xE55cc27460B55c8aC7E73043F38b537758C9E51e'
 
 // Uniswap contract address
-wethAddress= '0xf975A646FCa589Be9fc4E0C28ea426A75645fB1f'
-factoryAddress= '0xAaC7D4A36DAb95955ef3c641c23F1fA46416CF71'
-swapRouterAddress= '0x6B5CF024365D5d5d0786673780CA7E3F07f85B63'
-nftDescriptorAddress= '0x594f79e85F6f041eb56cF6822FF4125ee316409E'
-positionDescriptorAddress= '0xfDb6669cF60C1dBfB0f72Ea50A6eC5e0FD6089E1'
-positionManagerAddress= '0x2fe19128A8257182fdD77f90eA96D27cA342897A'
+wethAddress= '0x90A3B384F62f43Ba07938EA43aEEc35c2aBfeCa2'
+factoryAddress= '0x43c5DF0c482c88Cef8005389F64c362eE720A5bC'
+swapRouterAddress= '0x2098cb47B17082Ab6969FB2661f2759A9BF357c4'
+nftDescriptorAddress= '0xF01f4567586c3A707EBEC87651320b2dd9F4A287'
+positionDescriptorAddress= '0x2B07F89c9F574a890F5B8b7FddAfbBaE40f6Fde2'
+positionManagerAddress= '0xCaC60200c1Cb424f2C1e438c7Ee1B98d487f0254'
 
 const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
@@ -23,7 +23,6 @@ const Web3Modal = require("web3modal");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 const MAINNET_URL = "https://rpc.ankr.com/eth";
-
 const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
 
 function encodePriceSqrt(reserve1, reserve0) {
@@ -50,14 +49,8 @@ const factory = new Contract(
 );
 
 async function deployPool(token0, token1, fee, price) {
-  // const [owner] = await ethers.getSigners();
-  const MAINNET_URL = "test network url";
+  const [signer] = await ethers.getSigners();
 
-  const WALLET_ADDRESS = "your";
-  const WALLET_SECRET = "your";
-  const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
-  const wallet = new ethers.Wallet(WALLET_SECRET);
-  const signer = wallet.connect(provider);
   const create = await nonfungiblePositionManager
     .connect(signer)
     .createAndInitializePoolIfNecessary(token0, token1, fee, price, {
@@ -83,7 +76,7 @@ async function main() {
 }
 
 /*
-  npx hardhat run --network goerli scripts/deployPool.js
+  npx hardhat run --network localhost scripts/03_deployPool.js
   */
 
 main()
