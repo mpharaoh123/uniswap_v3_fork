@@ -8,6 +8,8 @@ import poolDataList from "./poolData.json";
 
 export const poolData = poolDataList.tokens;
 
+export const V3_SWAP_ROUTER_ADDRESS = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45";
+
 //BOOTOKEN
 export const BooTokenAddress = "0xdB05A386810c809aD5a77422eb189D36c7f24402";
 export const BooTokenABI = booToken.abi;

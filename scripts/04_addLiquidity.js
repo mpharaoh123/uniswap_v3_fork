@@ -42,9 +42,8 @@ async function getPoolData(poolContract) {
 }
 
 async function main() {
-  const MAINNET_URL = "https://rpc.ankr.com/eth";
-  const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
   const [_owner, signer] = await ethers.getSigners();
+  const provider = waffle.provider;
 
   const ShoaibContract = new Contract(
     shoaibAddress,
@@ -60,11 +59,11 @@ async function main() {
 
   await ShoaibContract.connect(signer).approve(
     positionManagerAddress,
-    ethers.utils.parseEther("599900")
+    ethers.utils.parseEther("1000")
   );
   await RayyanContract.connect(signer).approve(
     positionManagerAddress,
-    ethers.utils.parseEther("599900")
+    ethers.utils.parseEther("1000")
   );
 
   const poolContract = new Contract(
@@ -77,8 +76,8 @@ async function main() {
   const poolData = await getPoolData(poolContract);
   console.log("poolData", poolData);
 
-  const ShoaibToken = new Token(5, shoaibAddress, 18, "Shoaib", "SHO");
-  const RayyanToken = new Token(5, rayyanAddrss, 18, "Rayyan", "RAY");
+  const ShoaibToken = new Token(31337, shoaibAddress, 18, "Shoaib", "SHO");
+  const RayyanToken = new Token(31337, rayyanAddrss, 18, "Rayyan", "RAY");
 
   const pool = new Pool(
     ShoaibToken,
@@ -91,7 +90,7 @@ async function main() {
 
   const position = new Position({
     pool: pool,
-    liquidity: ethers.utils.parseUnits("2000", 18).toString(),
+    liquidity: ethers.utils.parseEther("1"),
     tickLower:
       nearestUsableTick(poolData.tick, poolData.tickSpacing) -
       poolData.tickSpacing * 2,

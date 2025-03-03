@@ -19,7 +19,7 @@ module.exports = {
   },
   networks: {
     fork: {
-      url: "https://eth-mainnet.alchemyapi.io/v2/R5isWrM_WquQc56tWScIZN5i-v0KEVSz", // 替换 YOUR_ALCHEMY_API_KEY 为你的 API 密钥
+      url: "https://eth-mainnet.alchemyapi.io/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f", // 替换 YOUR_ALCHEMY_API_KEY 为你的 API 密钥
       accounts: [
         "ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
       ],

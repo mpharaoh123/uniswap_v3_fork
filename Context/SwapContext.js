@@ -3,7 +3,7 @@ import { ethers, BigNumber, errors } from "ethers";
 import Web3Modal from "web3modal";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
 import axios from "axios";
-import { poolData } from "./constants";
+import { poolData, V3_SWAP_ROUTER_ADDRESS } from "./constants";
 
 //INTERNAL IMPORT
 import {

@@ -1,15 +1,15 @@
 // Token addresses
-shoaibAddress= '0xABc84968376556B5e5B3C3bda750D091a06De536'
-rayyanAddrss= '0xFf8FA9381caf61cB3368a6ec0b3F5C788028D0Cd'
-popUpAddress= '0xE55cc27460B55c8aC7E73043F38b537758C9E51e'
+shoaibAddress = "0xDf66AB853Fc112Ec955531bd76E9079db30A0e27";
+rayyanAddrss = "0x8797847c9d63D8Ed9C30B058F408d4257A33B76C";
+popUpAddress = "0xF816b7FfDa4a8aB6B68540D1993fCa98E462b3bc";
 
 // Uniswap contract address
-wethAddress= '0x90A3B384F62f43Ba07938EA43aEEc35c2aBfeCa2'
-factoryAddress= '0x43c5DF0c482c88Cef8005389F64c362eE720A5bC'
-swapRouterAddress= '0x2098cb47B17082Ab6969FB2661f2759A9BF357c4'
-nftDescriptorAddress= '0xF01f4567586c3A707EBEC87651320b2dd9F4A287'
-positionDescriptorAddress= '0x2B07F89c9F574a890F5B8b7FddAfbBaE40f6Fde2'
-positionManagerAddress= '0xCaC60200c1Cb424f2C1e438c7Ee1B98d487f0254'
+wethAddress = "0x1E53bea57Dd5dDa7bFf1a1180a2f64a5c9e222f5";
+factoryAddress = "0x27f7785b17c6B4d034094a1B16Bc928bD697f386";
+swapRouterAddress = "0x17f4B55A352Be71CC03856765Ad04147119Aa09B";
+nftDescriptorAddress = "0x08677Af0A7F54fE2a190bb1F75DE682fe596317e";
+positionDescriptorAddress = "0xa7480B62a657555f6727bCdb96953bCC211FFbaC";
+positionManagerAddress = "0x87a2688d6E41b23d802F74c6B1F06a8e8d118929";
 
 const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
@@ -22,8 +22,10 @@ const bn = require("bignumber.js");
 const Web3Modal = require("web3modal");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
-const MAINNET_URL = "https://rpc.ankr.com/eth";
-const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
+const MAINNET_URL =
+  "://eth-mainnet.alchemyapi.io/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f";
+// const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
+const provider = ethers.provider;
 
 function encodePriceSqrt(reserve1, reserve0) {
   return BigNumber.from(
@@ -51,13 +53,20 @@ const factory = new Contract(
 async function deployPool(token0, token1, fee, price) {
   const [signer] = await ethers.getSigners();
 
+  if (token0.toLowerCase() > token1.toLowerCase()) {
+    token0 = token1;
+    token1 = token0;
+  }
   const create = await nonfungiblePositionManager
     .connect(signer)
     .createAndInitializePoolIfNecessary(token0, token1, fee, price, {
       gasLimit: 5000000,
     });
 
-  console.log(create);
+  console.log("create", create);
+  await create.wait();
+
+  console.log("Fetching pool address...");
   const poolAddress = await factory
     .connect(signer)
     .getPool(token0, token1, fee);
@@ -68,11 +77,11 @@ async function main() {
   const shoRay = await deployPool(
     popUpAddress,
     rayyanAddrss,
-    3000,
+    500,
     encodePriceSqrt(1, 1)
   );
 
-  console.log("SHO_RAY=", `'${shoRay}'`);
+  console.log("\nSHO_RAY=", `'${shoRay}'`);
 }
 
 /*
