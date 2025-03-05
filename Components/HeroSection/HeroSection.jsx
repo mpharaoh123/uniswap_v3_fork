@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Image from "next/image";
 
 //INTERNAL IMPORT
@@ -8,6 +8,7 @@ import { Token, SearchToken } from "../index";
 
 //CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
+import { poolData } from "../../Context/constants.js";
 
 const HeroSection = ({}) => {
   //USESTATE
@@ -30,6 +31,28 @@ const HeroSection = ({}) => {
     getPrice,
     swapUpdatePrice,
   } = useContext(SwapTokenContext);
+
+  useEffect(() => {
+    if (tokenData.length > 0) {
+      console.log("herosection tokenData:", tokenData);
+      const firstToken = tokenData[0];
+      setTokenOne({
+        name: firstToken.name,
+        image: "",
+        symbol: firstToken.symbol,
+        tokenBalance: firstToken.tokenBalance,
+        tokenAddress: firstToken.tokenAddress,
+      });
+      const secondToken = tokenData[2];
+      setTokenTwo({
+        name: secondToken.name,
+        image: "",
+        symbol: secondToken.symbol,
+        tokenBalance: secondToken.tokenBalance,
+        tokenAddress: secondToken.tokenAddress,
+      });
+    }
+  }, [tokenData]);
 
   //TOKEN 1
   const [tokenOne, setTokenOne] = useState({
@@ -104,7 +127,7 @@ const HeroSection = ({}) => {
               alt="ether"
             />
             {tokenOne.symbol || "ETH"}
-            <small>{tokenOne.tokenBalance.slice(0, 7)}</small>
+            <small>{parseFloat(tokenOne.tokenBalance).toFixed(2)}</small>
           </button>
         </div>
 
@@ -130,7 +153,7 @@ const HeroSection = ({}) => {
               alt="ether"
             />
             {tokenTwo.symbol || "ETH"}
-            <small>{tokenTwo.tokenBalance.slice(0, 7)}</small>
+            <small>{parseFloat(tokenTwo.tokenBalance).toFixed(2)}</small>
           </button>
         </div>
 

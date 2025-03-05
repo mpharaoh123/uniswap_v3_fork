@@ -32,8 +32,8 @@ const NavBar = () => {
   const [openTokenBox, setOpenTokenBox] = useState(false);
 
   useEffect(() => {
-    console.log("navbar Token Data:", tokenData);
-  }, [tokenData]); 
+    // console.log("navbar Token Data:", tokenData);
+  }, []); 
 
   return (
     <div className={Style.NavBar}>

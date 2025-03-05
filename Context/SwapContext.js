@@ -66,22 +66,17 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       //ALL TOKEN BALANCE AND DATA
       const fetchedTokenData = [];
+      console.log("poolData", poolData);
       for (const el of poolData) {
-        // poolData.map(async (el, i) => {
-        const contract = new ethers.Contract(el.id, ERC20, provider);
-        // console.log("i====== token", i, el.name);
-        const ercBalance = await contract.balanceOf(userAccount);
-        // const userBalance = await contract.balanceOf(userAccount);
-        // const tokenLeft = BigNumber.from(userBalance).toString();
-        // const convertTokenBal = ethers.utils.formatEther(tokenLeft);
-        const convertTokenBal = ethers.utils.formatUnits(
-          ercBalance,
-          el.decimals
-        );
-        // console.log("convertTokenBal", convertTokenBal);
-        //   //GET NAME AND SYMBOL
-        //   const symbol = await contract.symbol();
-        //   const name = await contract.name();
+        let convertTokenBal = "";
+        if (el.id == poolData[0].id) {
+          const balance = await provider.getBalance(userAccount);
+          convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
+        } else {
+          const contract = new ethers.Contract(el.id, ERC20, provider);
+          const ercBalance = await contract.balanceOf(userAccount);
+          convertTokenBal = ethers.utils.formatUnits(ercBalance, el.decimals);
+        }
         const existingToken = fetchedTokenData.find(
           (token) => token.tokenAddress === el.id
         );
@@ -95,23 +90,23 @@ export const SwapTokenContextProvider = ({ children }) => {
         }
       }
       setTokenData(fetchedTokenData);
-      console.log("tokenData", tokenData);
+      // console.log("tokenData", tokenData);
 
       // //GET LIQUDITY
-      const userStorageData = await connectingWithUserStorageContract();
-      const userLiquidity = await userStorageData.getAllTransactions();
-      console.log("userLiquidity", userLiquidity);
+      // const userStorageData = await connectingWithUserStorageContract();
+      // const userLiquidity = await userStorageData.getAllTransactions();
+      // console.log("userLiquidity", userLiquidity);
 
-      userLiquidity.map(async (el, i) => {
-        const liquidityData = await getLiquidityData(
-          el.poolAddress,
-          el.tokenAddress0,
-          el.tokenAddress1
-        );
+      // userLiquidity.map(async (el, i) => {
+      //   const liquidityData = await getLiquidityData(
+      //     el.poolAddress,
+      //     el.tokenAddress0,
+      //     el.tokenAddress1
+      //   );
 
-        getAllLiquidity.push(liquidityData);
-        console.log("getAllLiquidity", getAllLiquidity);
-      });
+      //   getAllLiquidity.push(liquidityData);
+      //   console.log("getAllLiquidity", getAllLiquidity);
+      // });
 
       setTopTokensList(poolData);
     } catch (error) {
