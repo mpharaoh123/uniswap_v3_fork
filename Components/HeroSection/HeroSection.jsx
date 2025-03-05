@@ -87,7 +87,7 @@ const HeroSection = ({}) => {
     setSearch(false);
 
     const poolAddress = "0xc2e9f25be6257c210d7adf0d4cd6e3e881ba25f8";
-    const poolData = await getPrice(value, poolAddress);
+    const poolData = await getPrice(value, tokenOne.tokenAddress, tokenTwo.tokenAddress, 3000); //todo 传fee
     const message = `${value} ${poolData[1]} = ${poolData[0]} ${poolData[2]}`;
     console.log(message);
     setPoolMessage(message);
