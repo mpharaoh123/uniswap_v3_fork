@@ -21,11 +21,12 @@ export const getPrice = async (
   fee,
   // poolAddress
 ) => {
-  const poolContract = new ethers.Contract(
-    poolAddress,
-    IUniswapV3PoolABI,
-    provider
-  );
+  
+  // const poolContract = new ethers.Contract(
+  //   poolAddress,
+  //   IUniswapV3PoolABI,
+  //   provider
+  // );
 
   // console.log("===", await poolContract.fee());
 
@@ -52,14 +53,6 @@ export const getPrice = async (
     tokenDecimals0
   );
 
-  // const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
-  //   tokenAddrss0,
-  //   tokenAddrss1,
-  //   fee,
-  //   amountIn,
-  //   0
-  // );
-
   const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
     tokenAddrss0,
     tokenAddrss0,
@@ -69,7 +62,6 @@ export const getPrice = async (
   );
 
   const amountOut = ethers.utils.formatUnits(quotedAmountOut, tokenDecimals1);
-
   return [amountOut, tokenSymbol0, tokenSymbol1];
 };
 
