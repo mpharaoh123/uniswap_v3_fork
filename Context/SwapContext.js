@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { ethers, BigNumber, errors } from "ethers";
 import Web3Modal from "web3modal";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
-import axios from "axios";
-import { poolData, V3_SWAP_ROUTER_ADDRESS } from "./constants";
+import { poolData } from "./constants";
 
 //INTERNAL IMPORT
 import {
@@ -86,6 +85,7 @@ export const SwapTokenContextProvider = ({ children }) => {
             symbol: el.symbol,
             tokenBalance: convertTokenBal,
             tokenAddress: el.id,
+            decimals: parseInt(el.decimals),
           });
         }
       }

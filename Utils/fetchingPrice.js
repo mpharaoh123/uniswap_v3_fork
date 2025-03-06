@@ -1,9 +1,6 @@
 const { ethers } = require("ethers");
 const axios = require("axios");
-
-const {
-  abi: IUniswapV3PoolABI,
-} = require("@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json");
+const { ETHERSCAN_API_KEY, V3_SWAP_QUTOR_ADDRESS } = require("../Context/constants");
 const {
   abi: QuoterABI,
 } = require("@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json");
@@ -11,30 +8,17 @@ const {
 const MAINNET_URL = "https://rpc.ankr.com/eth";
 const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
 
-const ETHERSCAN_API_KEY = "YFSRE2FVXRPUKARC7K6TBM1KNZAK6AQPRG";
-const qutorAddress = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
-
 export const getPrice = async (
   inputAmount,
   tokenAddrss0,
   tokenAddrss1,
-  fee,
-  // poolAddress
+  fee
 ) => {
-  
-  // const poolContract = new ethers.Contract(
-  //   poolAddress,
-  //   IUniswapV3PoolABI,
-  //   provider
-  // );
+  // console.log("111", inputAmount);
+  // console.log("222", tokenAddrss0);
+  // console.log("333", tokenAddrss1);
+  // console.log("444", fee);
 
-  // console.log("===", await poolContract.fee());
-
-  // console.log(poolContract);
-  // const tokenAddrss0 = await poolContract.token0();
-  // const tokenAddrss1 = await poolContract.token1();
-  // const fee = await poolContract.fee();
-  // console.log(tokenAddrss0, tokenAddrss1);
   const tokenAbi0 = await getAbi(tokenAddrss0);
   const tokenAbi1 = await getAbi(tokenAddrss1);
 
@@ -46,7 +30,7 @@ export const getPrice = async (
   const tokenDecimals0 = await tokenContract0.decimals();
   const tokenDecimals1 = await tokenContract1.decimals();
 
-  const quoterContract = new ethers.Contract(qutorAddress, QuoterABI, provider);
+  const quoterContract = new ethers.Contract(V3_SWAP_QUTOR_ADDRESS, QuoterABI, provider);
   // const immutables = await getPoolImmutables(poolContract);
   const amountIn = ethers.utils.parseUnits(
     inputAmount.toString(),
@@ -55,7 +39,7 @@ export const getPrice = async (
 
   const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
     tokenAddrss0,
-    tokenAddrss0,
+    tokenAddrss1,
     fee,
     amountIn,
     0

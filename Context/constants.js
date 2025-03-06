@@ -8,7 +8,10 @@ import poolDataList from "./poolData.json";
 
 export const poolData = poolDataList.tokens;
 
+export const ETHERSCAN_API_KEY = "YFSRE2FVXRPUKARC7K6TBM1KNZAK6AQPRG";
+
 export const V3_SWAP_ROUTER_ADDRESS = "0x68b3465833fb72A70ecDF485E0e4C7bD8665Fc45";
+export const V3_SWAP_QUTOR_ADDRESS = "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 
 //BOOTOKEN
 export const BooTokenAddress = "0xdB05A386810c809aD5a77422eb189D36c7f24402";

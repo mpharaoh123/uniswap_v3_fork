@@ -13,7 +13,7 @@ import { poolData } from "../../Context/constants.js";
 const HeroSection = ({}) => {
   //USESTATE
   const [openSetting, setOpenSetting] = useState(false);
-  const [openToken, setOpenToken] = useState(false);
+  const [openTokenOne, setOpenTokenOne] = useState(false);
   const [openTokensTwo, setOpenTokensTwo] = useState(false);
 
   const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
@@ -35,21 +35,23 @@ const HeroSection = ({}) => {
   useEffect(() => {
     if (tokenData.length > 0) {
       console.log("herosection tokenData:", tokenData);
-      const firstToken = tokenData[0];
+      const firstToken = tokenData[3];
       setTokenOne({
         name: firstToken.name,
         image: "",
         symbol: firstToken.symbol,
         tokenBalance: firstToken.tokenBalance,
         tokenAddress: firstToken.tokenAddress,
+        decimals: firstToken.decimals,
       });
-      const secondToken = tokenData[2];
+      const secondToken = tokenData[9];
       setTokenTwo({
         name: secondToken.name,
         image: "",
         symbol: secondToken.symbol,
         tokenBalance: secondToken.tokenBalance,
         tokenAddress: secondToken.tokenAddress,
+        decimals: secondToken.decimals,
       });
     }
   }, [tokenData]);
@@ -61,6 +63,7 @@ const HeroSection = ({}) => {
     symbol: "",
     tokenBalance: "",
     tokenAddress: "",
+    decimals: "",
   });
   //TOKEN 2
   const [tokenTwo, setTokenTwo] = useState({
@@ -69,29 +72,40 @@ const HeroSection = ({}) => {
     symbol: "",
     tokenBalance: "",
     tokenAddress: "",
+    decimals: "",
   });
 
-  const callOutPut = async (value) => {
-    const yourAccount = "0x97f991971a37D4Ca58064e6a98FC563F03A71E5c";
-    const deadline = 10;
+  const callOutPut = async (inputAmount) => {
+    const yourAccount = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
+    const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
     const slippageAmount = 25;
+    // console.log("tokenOne", tokenOne);
+    // console.log("tokenTwo", tokenTwo);
+
     const data = await swapUpdatePrice(
-      value,
+      tokenOne,
+      tokenTwo,
+      inputAmount,
       slippageAmount,
       deadline,
       yourAccount
     );
-    console.log(data);
+    console.log("data", data);
 
     setTokenSwapOutPut(data[1]);
     setSearch(false);
 
-    const poolAddress = "0xc2e9f25be6257c210d7adf0d4cd6e3e881ba25f8";
-    const poolData = await getPrice(value, tokenOne.tokenAddress, tokenTwo.tokenAddress, 3000); //todo 传fee
-    const message = `${value} ${poolData[1]} = ${poolData[0]} ${poolData[2]}`;
+    const poolData = await getPrice(
+      inputAmount,
+      tokenOne.tokenAddress,
+      tokenTwo.tokenAddress,
+      3000
+    ); //todo 传fee
+    const message = `${inputAmount} ${poolData[1]} = ${poolData[0]} ${poolData[2]}`;
     console.log(message);
     setPoolMessage(message);
   };
+
   //JSX
   return (
     <div className={Style.HeroSection}>
@@ -119,7 +133,7 @@ const HeroSection = ({}) => {
               setSearch(true)
             )}
           />
-          <button onClick={() => setOpenToken(true)}>
+          <button onClick={() => setOpenTokenOne(true)}>
             <Image
               src={images.image || images.etherlogo}
               width={20}
@@ -188,17 +202,23 @@ const HeroSection = ({}) => {
 
       {openSetting && <Token setOpenSetting={setOpenSetting} />}
 
-      {openToken && (
+      {openTokenOne && (
         <SearchToken
-          openToken={setOpenToken}
-          tokens={setTokenOne}
+          openToken={setOpenTokenOne}
+          tokens={(token) => {
+            setTokenOne(token); // 更新 tokenOne 或 tokenTwo
+            console.log(`Selected Token1:`, token);
+          }}
           tokenData={tokenData}
         />
       )}
       {openTokensTwo && (
         <SearchToken
           openToken={setOpenTokensTwo}
-          tokens={setTokenTwo}
+          tokens={(token) => {
+            setTokenTwo(token); // 更新 tokenOne 或 tokenTwo
+            console.log(`Selected Token2:`, token);
+          }}
           tokenData={tokenData}
         />
       )}

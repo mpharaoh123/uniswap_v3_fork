@@ -42,7 +42,8 @@ const SearchToken = ({ openToken, tokens, tokenData, defaultActiveIndex }) => {
                   image: el.img,
                   symbol: el.symbol,
                   tokenBalance: el.tokenBalance,
-                  tokenAddress: el,
+                  tokenAddress: el.tokenAddress,
+                  decimals: el.decimals,
                 }),
                 openToken(false)
               )}
