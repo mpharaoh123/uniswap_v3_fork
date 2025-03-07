@@ -1,17 +1,16 @@
 import React, { useState, useContext, useEffect } from "react";
 import Image from "next/image";
 
-//INTERNAL IMPORT
+// INTERNAL IMPORT
 import Style from "./HeroSection.module.css";
 import images from "../../assets";
 import { Token, SearchToken } from "../index";
 
-//CONTEXT
+// CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
-import { poolData } from "../../Context/constants.js";
 
 const HeroSection = ({}) => {
-  //USESTATE
+  // USESTATE
   const [openSetting, setOpenSetting] = useState(false);
   const [openTokenOne, setOpenTokenOne] = useState(false);
   const [openTokensTwo, setOpenTokensTwo] = useState(false);
@@ -25,12 +24,29 @@ const HeroSection = ({}) => {
     singleSwapToken,
     connectWallet,
     account,
-    ether,
-    dai,
     tokenData,
     getPrice,
     swapUpdatePrice,
   } = useContext(SwapTokenContext);
+
+  // TOKEN 1 和 TOKEN 2
+  const [tokenOne, setTokenOne] = useState({
+    name: "",
+    image: "",
+    symbol: "",
+    tokenBalance: "",
+    tokenAddress: "",
+    decimals: "",
+  });
+
+  const [tokenTwo, setTokenTwo] = useState({
+    name: "",
+    image: "",
+    symbol: "",
+    tokenBalance: "",
+    tokenAddress: "",
+    decimals: "",
+  });
 
   useEffect(() => {
     if (tokenData.length > 0) {
@@ -44,7 +60,8 @@ const HeroSection = ({}) => {
         tokenAddress: firstToken.tokenAddress,
         decimals: firstToken.decimals,
       });
-      const secondToken = tokenData[4];
+
+      const secondToken = tokenData[7];
       setTokenTwo({
         name: secondToken.name,
         image: "",
@@ -56,31 +73,17 @@ const HeroSection = ({}) => {
     }
   }, [tokenData]);
 
-  //TOKEN 1
-  const [tokenOne, setTokenOne] = useState({
-    name: "",
-    image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
-  });
-  //TOKEN 2
-  const [tokenTwo, setTokenTwo] = useState({
-    name: "",
-    image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
-  });
+  // 监听 tokenOne 和 tokenTwo 的变化
+  useEffect(() => {
+    if (swapAmount > 0) {
+      setSearch(true);
+      callOutPut(swapAmount);
+    }
+  }, [tokenOne, tokenTwo, swapAmount]);
 
   const callOutPut = async (inputAmount) => {
-    const yourAccount = "0x70997970C51812dc3A010C7d01b50e0d17dc79C8";
     const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
     const slippageAmount = 25;
-    // console.log("tokenOne", tokenOne);
-    // console.log("tokenTwo", tokenTwo);
 
     const data = await swapUpdatePrice(
       tokenOne,
@@ -88,11 +91,11 @@ const HeroSection = ({}) => {
       inputAmount,
       slippageAmount,
       deadline,
-      yourAccount
+      account
     );
     console.log("data", data);
 
-    setTokenSwapOutPut(data[1]);
+    setTokenSwapOutPut(Number(data[1]).toFixed(6));
     setSearch(false);
 
     const poolData = await getPrice(
@@ -100,13 +103,14 @@ const HeroSection = ({}) => {
       tokenOne.tokenAddress,
       tokenTwo.tokenAddress,
       3000
-    ); //todo 传fee
-    const message = `${inputAmount} ${poolData[1]} = ${poolData[0]} ${poolData[2]}`;
+    ); // todo 传fee
+    console.log("poolData", poolData);
+    
+    const message = `${inputAmount} ${poolData[1]} = ${Number(poolData[0]).toFixed(6)} ${poolData[2]}`;
     console.log(message);
     setPoolMessage(message);
   };
 
-  //JSX
   return (
     <div className={Style.HeroSection}>
       <div className={Style.HeroSection_box}>
@@ -129,9 +133,7 @@ const HeroSection = ({}) => {
             placeholder="0"
             onChange={(e) => {
               if (e.target.value) {
-                callOutPut(e.target.value),
-                  setSwapAmount(e.target.value),
-                  setSearch(true);
+                setSwapAmount(e.target.value); // 更新 swapAmount
               }
             }}
           />
@@ -208,7 +210,7 @@ const HeroSection = ({}) => {
         <SearchToken
           openToken={setOpenTokenOne}
           tokens={(token) => {
-            setTokenOne(token); // 更新 tokenOne 或 tokenTwo
+            setTokenOne(token); // 更新 tokenOne
             console.log(`Selected Token1:`, token);
           }}
           tokenData={tokenData}
@@ -218,7 +220,7 @@ const HeroSection = ({}) => {
         <SearchToken
           openToken={setOpenTokensTwo}
           tokens={(token) => {
-            setTokenTwo(token); // 更新 tokenOne 或 tokenTwo
+            setTokenTwo(token); // 更新 tokenTwo
             console.log(`Selected Token2:`, token);
           }}
           tokenData={tokenData}

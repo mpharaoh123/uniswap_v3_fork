@@ -23,7 +23,6 @@ import { addLiquidityExternal } from "../Utils/addLiquidity";
 import { getLiquidityData } from "../Utils/checkLiquidity";
 import { connectingWithPoolContract } from "../Utils/deployPool";
 
-import { IWETHABI } from "./constants";
 import ERC20 from "./ERC20.json";
 
 export const SwapTokenContext = React.createContext();
