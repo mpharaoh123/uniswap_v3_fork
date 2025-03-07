@@ -1,16 +1,15 @@
 import { AlphaRouter } from "@uniswap/smart-order-router";
 import { ethers, BigNumber } from "ethers";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
-import { V3_SWAP_ROUTER_ADDRESS } from "../Context/constants";
+import { ALCHEMY_URL, V3_SWAP_ROUTER_ADDRESS } from "../Context/constants";
 
 //GET PRICE
 const chainId = 1;
 
 const provider = new ethers.providers.JsonRpcProvider(
-  "https://rpc.ankr.com/eth"
+  // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
+  ALCHEMY_URL
 );
-
-// const provider = ethers.provider;
 
 const router = new AlphaRouter({ chainId: chainId, provider: provider });
 
@@ -24,9 +23,6 @@ export const swapUpdatePrice = async (
 ) => {
   const tokenOneInit = new Token(chainId, tokenOne.tokenAddress, tokenOne.decimals, tokenOne.symbol, tokenOne.name);
   const tokenTwoInit = new Token(chainId, tokenTwo.tokenAddress, tokenTwo.decimals, tokenTwo.symbol, tokenTwo.name);
-
-  console.log("111",tokenOneInit);
-  console.log("222",tokenTwoInit);
 
   const percentSlippage = new Percent(slippageAmount, 100);
   const tokenOneWei = ethers.utils.parseUnits(inputAmount.toString(), tokenOne.decimals);

@@ -44,7 +44,7 @@ const HeroSection = ({}) => {
         tokenAddress: firstToken.tokenAddress,
         decimals: firstToken.decimals,
       });
-      const secondToken = tokenData[9];
+      const secondToken = tokenData[4];
       setTokenTwo({
         name: secondToken.name,
         image: "",
@@ -127,11 +127,13 @@ const HeroSection = ({}) => {
           <input
             type="number"
             placeholder="0"
-            onChange={(e) => (
-              callOutPut(e.target.value),
-              setSwapAmount(e.target.value),
-              setSearch(true)
-            )}
+            onChange={(e) => {
+              if (e.target.value) {
+                callOutPut(e.target.value),
+                  setSwapAmount(e.target.value),
+                  setSearch(true);
+              }
+            }}
           />
           <button onClick={() => setOpenTokenOne(true)}>
             <Image
