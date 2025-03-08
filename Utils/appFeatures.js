@@ -1,5 +1,6 @@
 import { ethers } from "ethers";
 import Web3Modal from "web3modal";
+import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
 
 import {
   BooTokenAddress,
@@ -14,6 +15,7 @@ import {
   IWETHABI,
   userStorageDataAddrss,
   userStorageDataABI,
+  V3_SWAP_ROUTER_ADDRESS,
 } from "../Context/constants";
 
 //CHECK IF WALLET IS CONNECT
