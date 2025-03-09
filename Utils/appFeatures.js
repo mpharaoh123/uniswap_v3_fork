@@ -15,7 +15,6 @@ import {
   IWETHABI,
   userStorageDataAddrss,
   userStorageDataABI,
-  V3_SWAP_ROUTER_ADDRESS,
 } from "../Context/constants";
 
 //CHECK IF WALLET IS CONNECT

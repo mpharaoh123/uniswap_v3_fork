@@ -18,7 +18,8 @@ const HeroSection = ({}) => {
   const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
   const [poolMessage, setPoolMessage] = useState("");
   const [search, setSearch] = useState(false);
-  const [swapAmount, setSwapAmount] = useState(0);
+  const [inputAmount, setInputAmount] = useState(0);
+  const [outputAmount, setOutPutAmount] = useState(0);
 
   const {
     singleSwapToken,
@@ -51,7 +52,7 @@ const HeroSection = ({}) => {
   useEffect(() => {
     if (tokenData.length > 0) {
       console.log("herosection tokenData:", tokenData);
-      const firstToken = tokenData[3];
+      const firstToken = tokenData[2];
       setTokenOne({
         name: firstToken.name,
         image: "",
@@ -61,7 +62,7 @@ const HeroSection = ({}) => {
         decimals: firstToken.decimals,
       });
 
-      const secondToken = tokenData[7];
+      const secondToken = tokenData[4];
       setTokenTwo({
         name: secondToken.name,
         image: "",
@@ -75,11 +76,11 @@ const HeroSection = ({}) => {
 
   // 监听 tokenOne 和 tokenTwo 的变化
   useEffect(() => {
-    if (swapAmount > 0) {
+    if (inputAmount > 0) {
       setSearch(true);
-      callOutPut(swapAmount);
+      callOutPut(inputAmount);
     }
-  }, [tokenOne, tokenTwo, swapAmount]);
+  }, [tokenOne, tokenTwo, inputAmount]);
 
   const callOutPut = async (inputAmount) => {
     const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
@@ -105,7 +106,7 @@ const HeroSection = ({}) => {
       3000
     ); // todo 传fee
     console.log("poolData", poolData);
-    
+    setOutPutAmount(poolData[0]);
     const message = `${inputAmount} ${poolData[1]} = ${Number(poolData[0]).toFixed(6)} ${poolData[2]}`;
     console.log(message);
     setPoolMessage(message);
@@ -133,7 +134,7 @@ const HeroSection = ({}) => {
             placeholder="0"
             onChange={(e) => {
               if (e.target.value) {
-                setSwapAmount(e.target.value); // 更新 swapAmount
+                setInputAmount(e.target.value); // 更新 swapAmount
               }
             }}
           />
@@ -186,9 +187,11 @@ const HeroSection = ({}) => {
             className={Style.HeroSection_box_btn}
             onClick={() =>
               singleSwapToken({
-                token1: tokenOne,
-                token2: tokenTwo,
-                swapAmount,
+                account,
+                tokenOne,
+                tokenTwo,
+                inputAmount,
+                outputAmount,
               })
             }
           >

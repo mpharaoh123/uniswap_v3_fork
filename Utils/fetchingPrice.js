@@ -2,7 +2,7 @@ const { ethers } = require("ethers");
 const axios = require("axios");
 const {
   ETHERSCAN_API_KEY,
-  V3_SWAP_QUTOR_ADDRESS,
+  V3_SWAP_QUOTER_ADDRESS,
   ALCHEMY_URL,
 } = require("../Context/constants");
 const {
@@ -10,7 +10,6 @@ const {
 } = require("@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json");
 
 const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
-const wethAddr = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 export const getPrice = async (
   inputAmount,
   tokenAddrss0,
@@ -34,7 +33,7 @@ export const getPrice = async (
   const tokenDecimals1 = await tokenContract1.decimals();
 
   const quoterContract = new ethers.Contract(
-    V3_SWAP_QUTOR_ADDRESS,
+    V3_SWAP_QUOTER_ADDRESS,
     QuoterABI,
     provider
   );
@@ -82,7 +81,7 @@ export const getPrice = async (
 //   const tokenDecimals1 = await tokenContract1.decimals();
 
 //   const quoterContract = new ethers.Contract(
-//     V3_SWAP_QUTOR_ADDRESS,
+//     V3_SWAP_QUOTER_ADDRESS,
 //     QuoterABI,
 //     provider
 //   );

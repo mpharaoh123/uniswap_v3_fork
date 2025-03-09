@@ -13,7 +13,8 @@ export const ALCHEMY_URL =
   "https://eth-mainnet.alchemyapi.io/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f";
 export const V3_SWAP_ROUTER_ADDRESS =
   "0xE592427A0AEce92De3Edee1F18E0157C05861564";
-export const V3_SWAP_QUTOR_ADDRESS =
+
+export const V3_SWAP_QUOTER_ADDRESS =
   "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 
 //BOOTOKEN

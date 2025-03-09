@@ -2,7 +2,12 @@ import React, { useState, useEffect } from "react";
 import { ethers, BigNumber, errors } from "ethers";
 import Web3Modal from "web3modal";
 import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
-import { poolData } from "./constants";
+import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
+import {
+  poolData,
+  V3_SWAP_ROUTER_ADDRESS as UNISWAP_V3_ROUTER_ADDRESS,
+  ALCHEMY_URL,
+} from "./constants";
 
 //INTERNAL IMPORT
 import {
@@ -200,47 +205,88 @@ export const SwapTokenContextProvider = ({ children }) => {
   };
 
   //SINGL SWAP TOKEN
-  const singleSwapToken = async ({ token1, token2, swapAmount }) => {
+  const singleSwapToken = async ({
+    account,
+    tokenOne,
+    tokenTwo,
+    inputAmount,
+    outputAmount,
+  }) => {
     console.log(
-      token1.tokenAddress.tokenAddress,
-      token2.tokenAddress.tokenAddress,
-      swapAmount
+      account,
+      tokenOne.address,
+      tokenTwo.address,
+      inputAmount,
+      outputAmount
     );
     try {
-      let singleSwapToken;
-      let weth;
-      let dai;
-      singleSwapToken = await connectingWithSingleSwapToken();
-      weth = await connectingWithIWTHToken();
-      dai = await connectingWithDAIToken();
+      const web3modal = new Web3Modal();
+      const connection = await web3modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
 
-      console.log(singleSwapToken);
-      const decimals0 = 18;
-      const inputAmount = swapAmount;
-      const amountIn = ethers.utils.parseUnits(
-        inputAmount.toString(),
-        decimals0
+      const uniswapRouter = new ethers.Contract(
+        UNISWAP_V3_ROUTER_ADDRESS,
+        SwapRouter.abi,
+        provider
       );
 
-      await weth.deposit({ value: amountIn });
-      console.log(amountIn);
-      await weth.approve(singleSwapToken.address, amountIn);
-      //SWAP
-      const transaction = await singleSwapToken.swapExactInputSingle(
-        token1.tokenAddress.tokenAddress,
-        token2.tokenAddress.tokenAddress,
-        amountIn,
-        {
-          gasLimit: 300000,
-        }
-      );
-      await transaction.wait();
-      console.log(transaction);
-      const balance = await dai.balanceOf(account);
-      const transferAmount = BigNumber.from(balance).toString();
-      const ethValue = ethers.utils.formatEther(transferAmount);
-      setDai(ethValue);
-      console.log("DAI balance:", ethValue);
+      const amountIn = ethers.utils.parseUnits(inputAmount, tokenOne.decimals);
+      const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
+
+      const params = {
+        tokenIn: tokenOne.address,
+        tokenOut: tokenTwo.address,
+        fee: 3000,
+        recipient: account,
+        amountIn: amountIn,
+        amountOutMinimum: ethers.utils.parseUnits("0", tokenTwo.decimals),
+        sqrtPriceLimitX96: 0, // 价格限制，默认为 0
+      };
+      const gasPrice = await provider.getGasPrice();
+      const swapTx = await uniswapRouter.exactInputSingle(params, {
+        gasLimit: 300000,
+        gasPrice: gasPrice.mul(2),
+        deadline: deadline,
+      });
+
+      console.log(`Swap transaction sent: ${swapTx.hash}`);
+      await swapTx.wait();
+      console.log('Swap transaction confirmed');
+
+      // let singleSwapToken;
+      // let weth;
+      // let dai;
+      // singleSwapToken = await connectingWithSingleSwapToken();
+      // weth = await connectingWithIWTHToken();
+      // dai = await connectingWithDAIToken();
+
+      // console.log(singleSwapToken);
+      // const decimals0 = 18;
+      // const inputAmount = swapAmount;
+      // const amountIn = ethers.utils.parseUnits(
+      //   inputAmount.toString(),
+      //   decimals0
+      // );
+
+      // await weth.deposit({ value: amountIn });
+      // console.log(amountIn);
+      // await weth.approve(singleSwapToken.address, amountIn);
+      // //SWAP
+      // const transaction = await singleSwapToken.swapExactInputSingle(
+      //   tokenOne.tokenAddress.tokenAddress,
+      //   tokenTwo.tokenAddress.tokenAddress,
+      //   amountIn,
+      //   {
+      //     gasLimit: 300000,
+      //   }
+      // );
+      // await transaction.wait();
+      // console.log(transaction);
+      // const balance = await dai.balanceOf(account);
+      // const transferAmount = BigNumber.from(balance).toString();
+      // const ethValue = ethers.utils.formatEther(transferAmount);
+      // setDai(ethValue);
+      // console.log("DAI balance:", ethValue);
     } catch (error) {
       console.log(error);
     }
