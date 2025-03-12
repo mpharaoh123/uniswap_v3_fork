@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import Image from "next/image";
 
 // INTERNAL IMPORT
@@ -20,6 +20,7 @@ const HeroSection = ({}) => {
   const [search, setSearch] = useState(false);
   const [inputAmount, setInputAmount] = useState(0);
   const [outputAmount, setOutPutAmount] = useState(0);
+  const timeoutRef = useRef(null);
 
   const {
     singleSwapToken,
@@ -52,7 +53,7 @@ const HeroSection = ({}) => {
   useEffect(() => {
     if (tokenData.length > 0) {
       console.log("herosection tokenData:", tokenData);
-      const firstToken = tokenData[2];
+      const firstToken = tokenData[0];
       setTokenOne({
         name: firstToken.name,
         image: "",
@@ -62,7 +63,7 @@ const HeroSection = ({}) => {
         decimals: firstToken.decimals,
       });
 
-      const secondToken = tokenData[4];
+      const secondToken = tokenData[2];
       setTokenTwo({
         name: secondToken.name,
         image: "",
@@ -76,11 +77,27 @@ const HeroSection = ({}) => {
 
   // 监听 tokenOne 和 tokenTwo 的变化
   useEffect(() => {
+    // 清除之前的定时器，避免重复调用
+    if (timeoutRef.current !== null) {
+      clearTimeout(timeoutRef.current);
+    }
+    // 如果 inputAmount 大于 0，则设置新的定时器
     if (inputAmount > 0) {
-      setSearch(true);
-      callOutPut(inputAmount);
+      timeoutRef.current = window.setTimeout(() => {
+        setSearch(true);
+        callOutPut(inputAmount);
+      }, 1000); // 延迟 2 秒后执行
     }
   }, [tokenOne, tokenTwo, inputAmount]);
+
+  // 清理函数，确保组件卸载时清除定时器
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current !== null) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   const callOutPut = async (inputAmount) => {
     const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
@@ -107,7 +124,9 @@ const HeroSection = ({}) => {
     ); // todo 传fee
     console.log("poolData", poolData);
     setOutPutAmount(poolData[0]);
-    const message = `${inputAmount} ${poolData[1]} = ${Number(poolData[0]).toFixed(6)} ${poolData[2]}`;
+    const message = `${inputAmount} ${poolData[1]} = ${Number(
+      poolData[0]
+    ).toFixed(6)} ${poolData[2]}`;
     console.log(message);
     setPoolMessage(message);
   };

@@ -145,8 +145,8 @@ export const SwapTokenContextProvider = ({ children }) => {
     tokenAmmountTwo,
   }) => {
     try {
-      tokenAddress0 = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      tokenAddress1 = "0x1f9840a85d5af5bf1d1762f925bdaddc4201f984";
+      tokenAddress0 = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+      tokenAddress1 = "0xdac17f958d2ee523a2206206994597c13d831ec7";
       fee = 3000; //0.3%
       tokenPrice1 = 10;
       tokenPrice2 = 1000;
@@ -213,9 +213,10 @@ export const SwapTokenContextProvider = ({ children }) => {
     outputAmount,
   }) => {
     console.log(
+      "singleSwapToken",
       account,
-      tokenOne.address,
-      tokenTwo.address,
+      tokenOne.tokenAddress,
+      tokenTwo.tokenAddress,
       inputAmount,
       outputAmount
     );
@@ -223,35 +224,45 @@ export const SwapTokenContextProvider = ({ children }) => {
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
+      const signer = provider.getSigner();
 
       const uniswapRouter = new ethers.Contract(
         UNISWAP_V3_ROUTER_ADDRESS,
         SwapRouter.abi,
-        provider
+        signer
       );
 
       const amountIn = ethers.utils.parseUnits(inputAmount, tokenOne.decimals);
       const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
+      const amountOutMinimum = ethers.utils
+        .parseUnits(outputAmount, tokenTwo.decimals)
+        .mul(995)
+        .div(1000);
+
+      console.log("amountIn", amountIn.toString());
+      console.log("amountOutMinimum", amountOutMinimum.toString());
 
       const params = {
-        tokenIn: tokenOne.address,
-        tokenOut: tokenTwo.address,
+        tokenIn: tokenOne.tokenAddress,
+        tokenOut: tokenTwo.tokenAddress,
         fee: 3000,
         recipient: account,
         amountIn: amountIn,
-        amountOutMinimum: ethers.utils.parseUnits("0", tokenTwo.decimals),
+        amountOutMinimum: amountOutMinimum,
         sqrtPriceLimitX96: 0, // 价格限制，默认为 0
+        deadline: deadline,
       };
+
+      // todo 报错
       const gasPrice = await provider.getGasPrice();
       const swapTx = await uniswapRouter.exactInputSingle(params, {
         gasLimit: 300000,
         gasPrice: gasPrice.mul(2),
-        deadline: deadline,
       });
 
       console.log(`Swap transaction sent: ${swapTx.hash}`);
       await swapTx.wait();
-      console.log('Swap transaction confirmed');
+      console.log("Swap transaction confirmed");
 
       // let singleSwapToken;
       // let weth;

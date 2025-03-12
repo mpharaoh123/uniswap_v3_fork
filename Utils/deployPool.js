@@ -5,8 +5,8 @@ import Web3Modal from "web3modal";
 const bn = require("bignumber.js");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
-const UNISWAP_V3_FACTORY_ADDRESS = "0x08677Af0A7F54fE2a190bb1F75DE682fe596317e";
-const NON_FUNGABLE_MANAGER = "0x8797847c9d63D8Ed9C30B058F408d4257A33B76C";
+const UNISWAP_V3_FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
+const NON_FUNGABLE_MANAGER_ADDRESS = "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
@@ -21,7 +21,7 @@ export const fetchPoolContract = (signerOrProvider) =>
 
 export const fetchPositionContract = (signerOrProvider) =>
   new ethers.Contract(
-    NON_FUNGABLE_MANAGER,
+    NON_FUNGABLE_MANAGER_ADDRESS,
     artifacts.NonfungiblePositionManager.abi,
     signerOrProvider
   );
@@ -61,7 +61,7 @@ export const connectingWithPoolContract = async (
   const factory = await fetchPoolContract(signer);
   console.log("factory", factory);
 
-  // todo 参考update中代码
+  // todo 报错 update项目中可以
   const transaction = await createPoolContract
     .connect(signer)
     .createAndInitializePoolIfNecessary(address1, address2, fee, price, {

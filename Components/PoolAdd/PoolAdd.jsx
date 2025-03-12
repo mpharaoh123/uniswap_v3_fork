@@ -25,19 +25,19 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
 
   //TOKEN 1
   const [tokenOne, setTokenOne] = useState({
+    name: tokenData[0].name,
+    image: images.etherlogo,
+    symbol: tokenData[0].symbol,
+    tokenBalance: tokenData[0].tokenBalance,
+    tokenAddress: tokenData[0].tokenAddress,
+  });
+  //TOKEN 2
+  const [tokenTwo, setTokenTwo] = useState({
     name: tokenData[2].name,
     image: images.etherlogo,
     symbol: tokenData[2].symbol,
     tokenBalance: tokenData[2].tokenBalance,
     tokenAddress: tokenData[2].tokenAddress,
-  });
-  //TOKEN 2
-  const [tokenTwo, setTokenTwo] = useState({
-    name: tokenData[9].name,
-    image: images.etherlogo,
-    symbol: tokenData[9].symbol,
-    tokenBalance: tokenData[9].tokenBalance,
-    tokenAddress: tokenData[9].tokenAddress,
   });
 
   const feePairs = [
@@ -279,8 +279,8 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
                   // console.log("tokenAmountOne:", tokenAmountOne);
                   // console.log("tokenAmountTwo:", tokenAmountTwo);
                   createLiquidityAndPool({
-                    tokenAddress0: tokenOne.tokenAddress.tokenAddress,
-                    tokenAddress1: tokenTwo.tokenAddress.tokenAddress,
+                    tokenAddress0: tokenOne.tokenAddress,
+                    tokenAddress1: tokenTwo.tokenAddress,
                     fee: fee,
                     tokenPrice1: minPrice,
                     tokenPrice2: maxPrice,
