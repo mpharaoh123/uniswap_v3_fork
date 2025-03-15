@@ -23,6 +23,7 @@ export const getPrice = async (
 
   const tokenAbi0 = await getAbi(tokenAddrss0);
   const tokenAbi1 = await getAbi(tokenAddrss1);
+  // console.log('===abi===', tokenAbi0);
 
   const tokenContract0 = new ethers.Contract(tokenAddrss0, tokenAbi0, provider);
   const tokenContract1 = new ethers.Contract(tokenAddrss1, tokenAbi1, provider);

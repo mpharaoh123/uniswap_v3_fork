@@ -13,13 +13,7 @@ import {
 import {
   checkIfWalletConnected,
   connectWallet,
-  connectingWithBooToken,
-  connectingWithLIfeToken,
-  connectingWithSingleSwapToken,
-  connectingWithIWTHToken,
-  connectingWithDAIToken,
   connectingWithUserStorageContract,
-  connectingWithMultiHopContract,
 } from "../Utils/appFeatures";
 
 import { getPrice } from "../Utils/fetchingPrice";
