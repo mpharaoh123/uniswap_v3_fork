@@ -1,5 +1,3 @@
-import booToken from "./BooToken.json";
-import lifeToken from "./LifeToken.json";
 import singleSwapToken from "./SingleSwapToken.json";
 import swapMultiHop from "./SwapMultiHop.json";
 import IWETH from "./IWETH.json";
@@ -17,14 +15,6 @@ export const NON_FUNGABLE_POSITION_MANAGER_ADDRESS =
   "0xC36442b4a4522E871399CD717aBDD847Ab11FE88";
 export const V3_SWAP_QUOTER_ADDRESS =
   "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
-
-//BOOTOKEN
-export const BooTokenAddress = "0xdB05A386810c809aD5a77422eb189D36c7f24402";
-export const BooTokenABI = booToken.abi;
-
-//LIFE TOken
-export const LifeTokenAddress = "0xbf2ad38fd09F37f50f723E35dd84EEa1C282c5C9";
-export const LifeTokenABI = lifeToken.abi;
 
 //SINGLE SWAP TOKEN
 export const SingleSwapTokenAddress =
