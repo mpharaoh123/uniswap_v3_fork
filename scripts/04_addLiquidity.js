@@ -1,17 +1,17 @@
 // Token addresses
-shoaibAddress= '0xABc84968376556B5e5B3C3bda750D091a06De536'
-rayyanAddrss= '0xFf8FA9381caf61cB3368a6ec0b3F5C788028D0Cd'
-popUpAddress= '0xE55cc27460B55c8aC7E73043F38b537758C9E51e'
+shoaibAddress= '0x0B32a3F8f5b7E5d315b9E52E640a49A89d89c820'
+rayyanAddrss= '0xF357118EBd576f3C812c7875B1A1651a7f140E9C'
+popUpAddress= '0x519b05b3655F4b89731B677d64CEcf761f4076f6'
 
 // Uniswap contract address
-wethAddress= '0x90A3B384F62f43Ba07938EA43aEEc35c2aBfeCa2'
-factoryAddress= '0x43c5DF0c482c88Cef8005389F64c362eE720A5bC'
-swapRouterAddress= '0x2098cb47B17082Ab6969FB2661f2759A9BF357c4'
-nftDescriptorAddress= '0xF01f4567586c3A707EBEC87651320b2dd9F4A287'
-positionDescriptorAddress= '0x2B07F89c9F574a890F5B8b7FddAfbBaE40f6Fde2'
-positionManagerAddress= '0xCaC60200c1Cb424f2C1e438c7Ee1B98d487f0254'
+wethAddress= '0xEb0fCBB68Ca7Ba175Dc1D3dABFD618e7a3F582F6'
+factoryAddress= '0xaE2abbDE6c9829141675fA0A629a675badbb0d9F'
+swapRouterAddress= '0x8B342f4Ddcc71Af65e4D2dA9CD00cc0E945cFD12'
+nftDescriptorAddress= '0xE2307e3710d108ceC7a4722a020a050681c835b3'
+positionDescriptorAddress= '0xD28F3246f047Efd4059B24FA1fa587eD9fa3e77F'
+positionManagerAddress= '0x15F2ea83eB97ede71d84Bd04fFF29444f6b7cd52'
 
-SHO_RAY = "0xdf609F128Be22b7f0A326B4b8475A25467D60074";
+SHO_RAY = "0xBaDa34457C2925dE8133a3a852C2360f956f33e3";
 
 const artifacts = {
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),

@@ -132,7 +132,7 @@ async function main() {
 }
 
 /*
- npx hardhat run --network localhost scripts/01_uniswapContract.js
+ npx hardhat run --network localhost scripts/01_deployContracts.js
 */
 
 main()

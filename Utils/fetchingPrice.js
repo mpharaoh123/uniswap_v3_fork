@@ -113,3 +113,32 @@ const getAbi = async (address) => {
   const abi = JSON.parse(res.data.result);
   return abi;
 };
+
+const Alchemy = require("alchemy-sdk");
+const Web3 = require("web3");
+const getBytecode = async (address) => {
+  // 这种方法获取的bytecode和etherscan上拉下来的不一致
+  try {
+    const web3 = new Web3(
+      `https://eth-mainnet.g.alchemy.com/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f`
+    );
+    console.log("current token", address);
+    const bytecode = await web3.eth.getCode(address);
+    console.log(`Bytecode for contract ${address}:`, bytecode);
+  } catch (error) {
+    console.error("Error fetching bytecode:", error);
+  }
+
+  // 这种方法不能用
+  // const settings = {
+  //   apiKey: "1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f", // 替换为你的 Alchemy API Key
+  //   network: Alchemy.Network.ETH_MAINNET, // 选择以太坊主网
+  // };
+  // const alchemy = new Alchemy(settings);
+  // try {
+  //   const bytecode = await alchemy.core.getCode(address);
+  //   console.log(`Bytecode for contract ${address}:`, bytecode);
+  // } catch (error) {
+  //   console.error("Error fetching bytecode:", error);
+  // }
+};
