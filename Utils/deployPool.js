@@ -61,7 +61,6 @@ export const connectingWithPoolContract = async (
   const factory = await fetchPoolContract(signer);
   console.log("factory", factory);
 
-  // todo 报错 update项目中可以
   const transaction = await createPoolContract
     .connect(signer)
     .createAndInitializePoolIfNecessary(address1, address2, fee, price, {

@@ -131,8 +131,8 @@ const getBytecode = async (address) => {
 
   // 这种方法不能用
   // const settings = {
-  //   apiKey: "1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f", // 替换为你的 Alchemy API Key
-  //   network: Alchemy.Network.ETH_MAINNET, // 选择以太坊主网
+  //   apiKey: "1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f",
+  //   network: Alchemy.Network.ETH_MAINNET,
   // };
   // const alchemy = new Alchemy(settings);
   // try {
