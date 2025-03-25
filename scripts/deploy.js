@@ -3,9 +3,8 @@ const hre = require("hardhat");
 async function main() {
 
   const gasPrice = await hre.ethers.provider.getGasPrice();
-  const maxFeePerGas = gasPrice.mul(2); // 将燃气费翻倍
-  const maxPriorityFeePerGas = gasPrice; // 设置最大优先级燃气费
-
+  const maxFeePerGas = gasPrice.mul(2); 
+  const maxPriorityFeePerGas = gasPrice;
   //SingleSwapToken
   const SingleSwapToken = await hre.ethers.getContractFactory(
     "SingleSwapToken"

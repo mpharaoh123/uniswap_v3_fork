@@ -8,7 +8,7 @@ const chainId = 1;
 
 const provider = new ethers.providers.JsonRpcProvider(
   // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
-  // "127.0.0.1:8545", //用这个router那里有问题
+  // "127.0.0.1:8545", //用这个，router需要重新部署
   ALCHEMY_URL //用ALCHEMY_URL是连接的主网，报gas不足
 );
 
