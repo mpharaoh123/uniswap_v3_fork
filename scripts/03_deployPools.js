@@ -1,15 +1,15 @@
 // Token addresses
-shoaibAddress= '0x0B32a3F8f5b7E5d315b9E52E640a49A89d89c820'
-rayyanAddrss= '0xF357118EBd576f3C812c7875B1A1651a7f140E9C'
-popUpAddress= '0x519b05b3655F4b89731B677d64CEcf761f4076f6'
+shoaibAddress= '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1'
+rayyanAddrss= '0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE'
+popUpAddress= '0x68B1D87F95878fE05B998F19b66F4baba5De1aed'
 
 // Uniswap contract address
-wethAddress= '0xEb0fCBB68Ca7Ba175Dc1D3dABFD618e7a3F582F6'
-factoryAddress= '0xaE2abbDE6c9829141675fA0A629a675badbb0d9F'
-swapRouterAddress= '0x8B342f4Ddcc71Af65e4D2dA9CD00cc0E945cFD12'
-nftDescriptorAddress= '0xE2307e3710d108ceC7a4722a020a050681c835b3'
-positionDescriptorAddress= '0xD28F3246f047Efd4059B24FA1fa587eD9fa3e77F'
-positionManagerAddress= '0x15F2ea83eB97ede71d84Bd04fFF29444f6b7cd52'
+wethAddress= '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+factoryAddress= '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
+swapRouterAddress= '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'
+nftDescriptorAddress= '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
+positionDescriptorAddress= '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
+positionManagerAddress= '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
 
 const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
@@ -19,12 +19,8 @@ const artifacts = {
 // const { waffle } = require("hardhat");
 const { Contract, BigNumber } = require("ethers");
 const bn = require("bignumber.js");
-const Web3Modal = require("web3modal");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
-const MAINNET_URL =
-  "://eth-mainnet.alchemyapi.io/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f";
-// const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
 const provider = ethers.provider;
 
 function encodePriceSqrt(reserve1, reserve0) {
@@ -85,8 +81,8 @@ async function main() {
 }
 
 /*
-  npx hardhat run --network localhost scripts/03_deployPool.js
-  */
+  npx hardhat run --network localhost scripts/03_deployPools.js
+*/
 
 main()
   .then(() => process.exit(0))

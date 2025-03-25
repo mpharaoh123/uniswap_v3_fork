@@ -26,8 +26,8 @@ async function getPoolData(poolContract) {
     poolContract.maxLiquidityPerTick(),
   ]);
 
-  const TokenA = new Token(3, token0, 18, "SHO", "Shoaib");
-  const TokenB = new Token(3, token1, 18, "RAY", "Rayyan");
+  const TokenA = new Token(31337, token0, 18, "SHO", "Shoaib");
+  const TokenB = new Token(31337, token1, 18, "RAY", "Rayyan");
 
   const poolExample = new Pool(
     TokenA,

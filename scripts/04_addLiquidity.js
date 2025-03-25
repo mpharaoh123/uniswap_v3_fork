@@ -1,7 +1,7 @@
 // Token addresses
-shoaibAddress= '0x0B32a3F8f5b7E5d315b9E52E640a49A89d89c820'
-rayyanAddrss= '0xF357118EBd576f3C812c7875B1A1651a7f140E9C'
-popUpAddress= '0x519b05b3655F4b89731B677d64CEcf761f4076f6'
+shoaibAddress= '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1'
+rayyanAddrss= '0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE'
+popUpAddress= '0x68B1D87F95878fE05B998F19b66F4baba5De1aed'
 
 // Uniswap contract address
 wethAddress= '0xEb0fCBB68Ca7Ba175Dc1D3dABFD618e7a3F582F6'
@@ -11,7 +11,7 @@ nftDescriptorAddress= '0xE2307e3710d108ceC7a4722a020a050681c835b3'
 positionDescriptorAddress= '0xD28F3246f047Efd4059B24FA1fa587eD9fa3e77F'
 positionManagerAddress= '0x15F2ea83eB97ede71d84Bd04fFF29444f6b7cd52'
 
-SHO_RAY = "0xBaDa34457C2925dE8133a3a852C2360f956f33e3";
+SHO_RAY = "0xF2b7cc3c6080768f9fa974fC1B04fA5F29355103";
 
 const artifacts = {
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
@@ -42,7 +42,7 @@ async function getPoolData(poolContract) {
 }
 
 async function main() {
-  const [_owner, signer] = await ethers.getSigners();
+  const [signer] = await ethers.getSigners();
   const provider = waffle.provider;
 
   const ShoaibContract = new Contract(
@@ -56,6 +56,12 @@ async function main() {
     artifacts.Rayyan.abi,
     provider
   );
+
+  const balance0 = await ShoaibContract.balanceOf(signer.address);
+  const balance1 = await RayyanContract.balanceOf(signer.address);
+
+  console.log(`Balance of Shoaib:`, balance0.toString());
+  console.log(`Balance of Rayyan:`, balance1.toString());
 
   await ShoaibContract.connect(signer).approve(
     positionManagerAddress,
@@ -72,7 +78,6 @@ async function main() {
     provider
   );
 
-  console.log("getPoolData", getPoolData);
   const poolData = await getPoolData(poolContract);
   console.log("poolData", poolData);
 
@@ -98,7 +103,7 @@ async function main() {
       nearestUsableTick(poolData.tick, poolData.tickSpacing) +
       poolData.tickSpacing * 2,
   });
-  console.log(position);
+  // console.log(position);
   const { amount0: amount0Desired, amount1: amount1Desired } =
     position.mintAmounts;
 
@@ -114,8 +119,8 @@ async function main() {
       poolData.tickSpacing * 2,
     amount0Desired: amount0Desired.toString(),
     amount1Desired: amount1Desired.toString(),
-    amount0Min: amount0Desired.toString(),
-    amount1Min: amount1Desired.toString(),
+    amount0Min: 0,
+    amount1Min: 0,
     recipient: signer.address,
     deadline: Math.floor(Date.now() / 1000) + 60 * 10,
   };
@@ -130,7 +135,7 @@ async function main() {
     .connect(signer)
     .mint(params, { gasLimit: "1000000" });
   const receipt = await tx.wait();
-  console.log(receipt);
+  // console.log(receipt);
 }
 
 /*
