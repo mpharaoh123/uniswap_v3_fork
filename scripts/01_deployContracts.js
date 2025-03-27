@@ -1,4 +1,6 @@
 const { Contract, ContractFactory, utils, BigNumber } = require("ethers");
+const fs = require("fs");
+const { promisify } = require("util");
 
 const WETH9 = require("../Context/WETH9.json");
 
@@ -117,18 +119,26 @@ async function main() {
     nonfungibleTokenPositionDescriptor.address
   );
 
-  console.log("wethAddress=", `'${weth.address}'`);
-  console.log("factoryAddress=", `'${factory.address}'`);
-  console.log("swapRouterAddress=", `'${swapRouter.address}'`);
-  console.log("nftDescriptorAddress=", `'${nftDescriptor.address}'`);
-  console.log(
-    "positionDescriptorAddress=",
-    `'${nonfungibleTokenPositionDescriptor.address}'`
-  );
-  console.log(
-    "positionManagerAddress=",
-    `'${nonfungiblePositionManager.address}'`
-  );
+  let addresses = [
+    `WETH_ADDRESS=${weth.address}`,
+    `FACTORY_ADDRESS=${factory.address}`,
+    `SWAP_ROUTER_ADDRESS=${swapRouter.address}`,
+    `NFT_DESCRIPTOR_ADDRESS=${nftDescriptor.address}`,
+    `POSITION_DESCRIPTOR_ADDRESS=${nonfungibleTokenPositionDescriptor.address}`,
+    `POSITION_MANAGER_ADDRESS=${nonfungiblePositionManager.address}`,
+  ];
+  const data = addresses.join("\n");
+
+  const writeFile = promisify(fs.writeFile);
+  const filePath = ".env";
+  return writeFile(filePath, data)
+    .then(() => {
+      console.log("Addresses recorded.");
+    })
+    .catch((error) => {
+      console.error("Error logging addresses:", error);
+      throw error;
+    });
 }
 
 /*
