@@ -1,15 +1,17 @@
+require("dotenv").config();
+
 // Token addresses
-shoaibAddress= '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1'
-rayyanAddrss= '0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE'
-popUpAddress= '0x68B1D87F95878fE05B998F19b66F4baba5De1aed'
+shoaibAddress = process.env.shoaibAddress;
+rayyanAddrss = process.env.rayyanAddrss;
+popUpAddress = process.env.popUpAddress;
 
 // Uniswap contract address
-wethAddress= '0x5FbDB2315678afecb367f032d93F642f64180aa3'
-factoryAddress= '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512'
-swapRouterAddress= '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0'
-nftDescriptorAddress= '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9'
-positionDescriptorAddress= '0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9'
-positionManagerAddress= '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
+wethAddress = process.env.wethAddress;
+factoryAddress = process.env.factoryAddress;
+swapRouterAddress = process.env.swapRouterAddress;
+nftDescriptorAddress = process.env.nftDescriptorAddress;
+positionDescriptorAddress = process.env.positionDescriptorAddress;
+positionManagerAddress = process.env.positionManagerAddress;
 
 const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
@@ -18,7 +20,9 @@ const artifacts = {
 
 // const { waffle } = require("hardhat");
 const { Contract, BigNumber } = require("ethers");
+const fs = require("fs");
 const bn = require("bignumber.js");
+const { promisify } = require("util");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 const provider = ethers.provider;
@@ -78,6 +82,18 @@ async function main() {
   );
 
   console.log("\nSHO_RAY=", `'${shoRay}'`);
+  let addresses = [`\nSHO_RAY=${shoRay}`];
+  const data = "\n" + addresses.join("\n");
+  const writeFile = promisify(fs.appendFile);
+  const filePath = ".env";
+  return writeFile(filePath, data)
+    .then(() => {
+      console.log("Addresses recorded.");
+    })
+    .catch((error) => {
+      console.error("Error logging addresses:", error);
+      throw error;
+    });
 }
 
 /*

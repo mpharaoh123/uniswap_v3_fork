@@ -120,12 +120,12 @@ async function main() {
   );
 
   let addresses = [
-    `WETH_ADDRESS=${weth.address}`,
-    `FACTORY_ADDRESS=${factory.address}`,
-    `SWAP_ROUTER_ADDRESS=${swapRouter.address}`,
-    `NFT_DESCRIPTOR_ADDRESS=${nftDescriptor.address}`,
-    `POSITION_DESCRIPTOR_ADDRESS=${nonfungibleTokenPositionDescriptor.address}`,
-    `POSITION_MANAGER_ADDRESS=${nonfungiblePositionManager.address}`,
+    `wethAddress=${weth.address}`,
+    `factoryAddress=${factory.address}`,
+    `swapRouterAddress=${swapRouter.address}`,
+    `nftDescriptorAddress=${nftDescriptor.address}`,
+    `positionDescriptorAddress=${nonfungibleTokenPositionDescriptor.address}`,
+    `positionManagerAddress=${nonfungiblePositionManager.address}`,
   ];
   const data = addresses.join("\n");
 

@@ -21,14 +21,14 @@ const connectingWithMultiHopContract = async () => {
   }
 };
 const rayyan = "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853";
-const fetchDAIContract = (signerOrProvider) =>
+const fetchRayyanContract = (signerOrProvider) =>
   new ethers.Contract(rayyan, rayyanabi.abi, signerOrProvider);
 
 //CONNECTING With SingleSwapToken TOKEN CONTRACT
-const connectingWithDAIToken = async () => {
+const connectingWithRayyanToken = async () => {
   try {
     const [signer] = await ethers.getSigners();
-    const contract = fetchDAIContract(signer);
+    const contract = fetchRayyanContract(signer);
     return contract;
   } catch (error) {
     console.log(error);
@@ -39,7 +39,7 @@ const singleSwapToken = async () => {
   try {
     const [signer] = await ethers.getSigners();
     let singleSwapToken;
-    let weth;
+    let rayyan;
     let dai;
 
     const token1 = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
@@ -47,13 +47,13 @@ const singleSwapToken = async () => {
     const fee = 3000;
 
     singleSwapToken = await connectingWithMultiHopContract();
-    weth = await connectingWithDAIToken();
+    rayyan = await connectingWithRayyanToken();
 
     const decimals0 = 18;
     const inputAmount = 1000;
     const amountIn = ethers.utils.parseUnits(inputAmount.toString(), decimals0);
 
-    await weth.approve(singleSwapToken.address, amountIn);
+    await rayyan.approve(singleSwapToken.address, amountIn);
 
     //SWAP
     const transaction = await singleSwapToken.swapExactInputMultihop(
@@ -68,7 +68,7 @@ const singleSwapToken = async () => {
     await transaction.wait();
     console.log(transaction);
 
-    const balance = await weth.balanceOf(signer.address);
+    const balance = await rayyan.balanceOf(signer.address);
     const transferAmount = BigNumber.from(balance).toString();
     const ethValue = ethers.utils.formatEther(transferAmount);
     console.log("Rayyan", ethValue);

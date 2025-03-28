@@ -1,17 +1,19 @@
+require("dotenv").config();
+
 // Token addresses
-shoaibAddress= '0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1'
-rayyanAddrss= '0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE'
-popUpAddress= '0x68B1D87F95878fE05B998F19b66F4baba5De1aed'
+shoaibAddress = process.env.shoaibAddress;
+rayyanAddrss = process.env.rayyanAddrss;
+popUpAddress = process.env.popUpAddress;
 
 // Uniswap contract address
-wethAddress= '0xEb0fCBB68Ca7Ba175Dc1D3dABFD618e7a3F582F6'
-factoryAddress= '0xaE2abbDE6c9829141675fA0A629a675badbb0d9F'
-swapRouterAddress= '0x8B342f4Ddcc71Af65e4D2dA9CD00cc0E945cFD12'
-nftDescriptorAddress= '0xE2307e3710d108ceC7a4722a020a050681c835b3'
-positionDescriptorAddress= '0xD28F3246f047Efd4059B24FA1fa587eD9fa3e77F'
-positionManagerAddress= '0x15F2ea83eB97ede71d84Bd04fFF29444f6b7cd52'
+wethAddress = process.env.wethAddress;
+factoryAddress = process.env.factoryAddress;
+swapRouterAddress = process.env.swapRouterAddress;
+nftDescriptorAddress = process.env.nftDescriptorAddress;
+positionDescriptorAddress = process.env.positionDescriptorAddress;
+positionManagerAddress = process.env.positionManagerAddress;
 
-SHO_RAY = "0xF2b7cc3c6080768f9fa974fC1B04fA5F29355103";
+SHO_RAY = process.env.SHO_RAY;
 
 const artifacts = {
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
@@ -43,7 +45,8 @@ async function getPoolData(poolContract) {
 
 async function main() {
   const [signer] = await ethers.getSigners();
-  const provider = waffle.provider;
+  const provider = ethers.provider;
+
 
   const ShoaibContract = new Contract(
     shoaibAddress,
@@ -130,6 +133,9 @@ async function main() {
     artifacts.NonfungiblePositionManager.abi,
     provider
   );
+
+  console.log(111, params);
+  
 
   const tx = await nonfungiblePositionManager
     .connect(signer)
