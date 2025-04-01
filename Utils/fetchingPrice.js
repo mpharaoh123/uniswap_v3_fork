@@ -114,8 +114,7 @@ const getAbi = async (address) => {
   return abi;
 };
 
-const Alchemy = require("alchemy-sdk");
-const Web3 = require("web3");
+// const Web3 = require("web3");
 const getBytecode = async (address) => {
   // 这种方法获取的bytecode和etherscan上拉下来的不一致
   try {

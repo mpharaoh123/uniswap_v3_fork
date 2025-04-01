@@ -14,7 +14,7 @@ const PoolConnect = ({ setClosePool, getAllLiquidity, account }) => {
     if (i % 2 == 1) tokenList.push(getAllLiquidity[i]);
   }
 
-  console.log("poolconnect tokenList", tokenList);
+  console.log("pool connect tokenList", tokenList);
   return (
     <div className={Style.PoolConnect}>
       <div className={Style.PoolConnect_box}>

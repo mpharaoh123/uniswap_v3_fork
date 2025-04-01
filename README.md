@@ -1,5 +1,5 @@
 # code explain
-
+0. node version: 18.12.1
 1. UserStorageData 合约用来记录添加 Liquidity 的细节
 2. 分别用了 V3_SWAP_QUOTER 和 AlphaRouter 来获取 swap 价格
 3. 自己写的 SingleSwapToken 合约，进行 swap 不成功
