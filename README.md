@@ -1,14 +1,12 @@
-1. 自己写的 SingleSwapToken 合约，用到了主网的 SwapRouter，SingleSwapToken 合约主要构造了方法所需要的 param
-2. UserStorageData 合约用来记录添加 Liquidity 的细节
-3. 分别用了 V3_SWAP_QUOTER 和 AlphaRouter 来获取 swap 价格
+# code explain
+
+1. UserStorageData 合约用来记录添加 Liquidity 的细节
+2. 分别用了 V3_SWAP_QUOTER 和 AlphaRouter 来获取 swap 价格
+3. 自己写的 SingleSwapToken 合约，进行 swap 不成功
 4. 用主网的 SwapRouter 进行 swap 不成功
 5. 用 AlphaRouter 进行 swap 不成功
-6. addLiquidity 见 uniswap_v3_fork_script 项目
-7. scripts中，03_deployPools.js不成功
-
-# todo
-
-1. 用 SingleSwapToken 合约实现 swap
+6. scripts 中，03_deployPools.js 不成功
+7. 用 npx hard node 启动节点，节点上还没有部署usdc, usdt等主流代币，要用npm run fork启动
 
 # scripts command
 

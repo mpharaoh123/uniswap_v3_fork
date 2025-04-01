@@ -72,20 +72,6 @@
     },
     {
       "decimals": "18",
-      "feesUSD": "3023529.214168621451575338773129653",
-      "id": "0x7f39c581f595b53c5cb19bd0b3f8da6c935e2ca0",
-      "name": "Wrapped liquid staked Ether 2.0",
-      "poolCount": "0",
-      "symbol": "wstETH",
-      "totalSupply": "18240",
-      "totalValueLocked": "4630.638293071476178213",
-      "totalValueLockedUSD": "15095188.20131952709055113486458354",
-      "txCount": "303154",
-      "volume": "8545040.151528543994012682",
-      "volumeUSD": "24904162049.01730052415996550343668"
-    },
-    {
-      "decimals": "18",
       "feesUSD": "1438654.402788493905526099840488641",
       "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
       "name": "USDe",

@@ -41,15 +41,6 @@ const linkLibraries = ({ bytecode, linkReferences }, libraries) => {
 };
 
 async function main() {
-  // const MAINNET_URL =
-  //   "your";
-
-  // const WALLET_ADDRESS = "your";
-  // const WALLET_SECRET =
-  //   "your";
-  // const provider = new ethers.providers.JsonRpcProvider(MAINNET_URL);
-  // const wallet = new ethers.Wallet(WALLET_SECRET);
-  // const signer = wallet.connect(provider);
 
   const [signer] = await ethers.getSigners();
   Weth = new ContractFactory(

@@ -1,5 +1,4 @@
 //NEW MULTIHOP
-const { waffle } = require("hardhat");
 const { Contract, BigNumber } = require("ethers");
 
 const swapMulti = require("../Context/SwapMultiHop.json");
@@ -13,7 +12,6 @@ const fetchMultiHopContract = (signerOrProvider) =>
 const connectingWithMultiHopContract = async () => {
   try {
     const [signer] = await ethers.getSigners();
-    const privider = waffle.provider;
     const contract = fetchMultiHopContract(signer);
     return contract;
   } catch (error) {

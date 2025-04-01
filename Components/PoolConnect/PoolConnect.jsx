@@ -7,7 +7,6 @@ import images from "../../assets";
 
 const PoolConnect = ({ setClosePool, getAllLiquidity, account }) => {
 
-  console.log("account", account);
   console.log("getAllLiquidity", getAllLiquidity);
 
   let tokenList = [];

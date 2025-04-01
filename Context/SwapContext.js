@@ -31,8 +31,6 @@ export const SwapTokenContextProvider = ({ children }) => {
   const [account, setAccount] = useState("");
   const [ether, setEther] = useState("");
   const [networkConnect, setNetworkConnect] = useState("");
-  const [weth9, setWeth9] = useState("");
-  const [dai, setDai] = useState("");
 
   const [tokenData, setTokenData] = useState([]);
   const [getAllLiquidity, setGetAllLiquidity] = useState([]);
@@ -66,7 +64,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       console.log("poolData", poolData);
       for (const el of poolData) {
         let convertTokenBal = "";
-        if (el.id == poolData[0].id) {
+        if (el.symbol == 'WETH') {
           const balance = await provider.getBalance(userAccount);
           convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
         } else {
@@ -307,8 +305,6 @@ export const SwapTokenContextProvider = ({ children }) => {
         createLiquidityAndPool,
         getAllLiquidity,
         account,
-        weth9,
-        dai,
         networkConnect,
         ether,
         tokenData,
