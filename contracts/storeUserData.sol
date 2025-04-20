@@ -2,6 +2,7 @@
 pragma solidity >=0.7.0 < 0.9.0;
 pragma abicoder v2;
 
+// 记录添加 Liquidity 的细节
 contract UserStorageData{
      struct TransactionStruck{
         address caller;
