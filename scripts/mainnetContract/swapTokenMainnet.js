@@ -26,6 +26,7 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
 
     const recipient = signer.address;
     const deadline = Math.floor(Date.now() / 1000) + 600; // 截止时间（当前时间 + 10 分钟）
+
     const amountIn = ethers.utils.parseUnits(amountInNum, tokenIn.decimals); // 输入代币数量
 
     const amountOutMinimum = ethers.utils.parseUnits(
@@ -139,12 +140,13 @@ async function main() {
   const tokenIn = tokenListMainnet[0]; // WETH
   const amountInNum = "10"; // 输入代币数量
   const fee = 3000; // 池的手续费等级（例如 0.3%）
+  const slippage = 0.001; //默认情况下，Uniswap V3将滑点容忍度设置为0.1%
 
   // 遍历 tokenListMainnet 中的其他代币
   for (let i = 1; i < tokenListMainnet.length; i++) {
     const tokenOut = tokenListMainnet[i];
     console.log(`Swapping ${tokenIn.symbol} to ${tokenOut.symbol}...`);
-    await swapTokens(tokenIn, tokenOut, amountInNum, fee);
+    await swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage);
   }
 }
 
