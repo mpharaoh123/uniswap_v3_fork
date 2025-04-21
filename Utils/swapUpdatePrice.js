@@ -13,7 +13,6 @@ const provider = new ethers.providers.JsonRpcProvider(
 
 const router = new AlphaRouter({ chainId: chainId, provider: provider });
 
-// todo 暂不成功
 export const swapUpdatePrice = async (
   tokenOne,
   tokenTwo,
@@ -70,6 +69,7 @@ export const swapUpdatePrice = async (
   const quoteAmountOut = route.quote.toFixed(6);
   const ratio = (inputAmount / quoteAmountOut).toFixed(3);
 
+  // 继续swap没成功
   // const signer = provider.getSigner() // 用不了
   // const signer = new ethers.Wallet("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider)
   // console.log("address", await signer.getAddress());

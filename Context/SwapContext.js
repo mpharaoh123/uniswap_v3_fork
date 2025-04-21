@@ -2,10 +2,7 @@ import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import Web3Modal from "web3modal";
-import {
-  poolData,
-  V3_SWAP_ROUTER_ADDRESS as UNISWAP_V3_ROUTER_ADDRESS,
-} from "./constants";
+import { IWETHABI, poolData, V3_SWAP_ROUTER_ADDRESS } from "./constants";
 
 //INTERNAL IMPORT
 import {
@@ -196,18 +193,20 @@ export const SwapTokenContextProvider = ({ children }) => {
   //SINGL SWAP TOKEN
   const singleSwapToken = async ({
     account,
-    tokenOne,
-    tokenTwo,
-    inputAmount,
-    outputAmount,
+    tokenIn,
+    tokenOut,
+    amountInNum,
+    slippage,
+    deadline,
   }) => {
     console.log(
-      "singleSwapToken",
+      "singleSwapToken param: ",
       account,
-      tokenOne.tokenAddress,
-      tokenTwo.tokenAddress,
-      inputAmount,
-      outputAmount
+      tokenIn,
+      tokenOut,
+      amountInNum,
+      slippage,
+      deadline
     );
     try {
       const web3modal = new Web3Modal();
@@ -215,78 +214,118 @@ export const SwapTokenContextProvider = ({ children }) => {
       const provider = new ethers.providers.Web3Provider(connection);
       const signer = provider.getSigner();
 
+      // 获取最新区块的 baseFeePerGas
+      const block = await provider.getBlock("latest");
+      const baseFeePerGas = block.baseFeePerGas;
+      const maxFeePerGas = baseFeePerGas.mul(3).div(2); // 设置为 baseFeePerGas 的 1.5 倍
+
       const uniswapRouter = new ethers.Contract(
-        UNISWAP_V3_ROUTER_ADDRESS,
+        V3_SWAP_ROUTER_ADDRESS,
         SwapRouter.abi,
         signer
       );
 
-      const amountIn = ethers.utils.parseUnits(inputAmount, tokenOne.decimals);
-      const deadline = Math.floor(Date.now() / 1000) + 60 * 20;
-      const amountOutMinimum = ethers.utils
-        .parseUnits(outputAmount, tokenTwo.decimals)
-        .mul(995)
-        .div(1000);
+      const amountIn = ethers.utils.parseUnits(inputAmount, tokenIn.decimals);
 
-      console.log("amountIn", amountIn.toString());
-      console.log("amountOutMinimum", amountOutMinimum.toString());
+      const amountOutMinimum = ethers.utils.parseUnits(
+        (inputAmount * (1 - slippage)).toString(),
+        tokenOut.decimals
+      ); // 最小输出代币数量
 
+      // 获取 WETH 合约
+      const tokenInContract = new ethers.Contract(
+        tokenIn.id,
+        IWETHABI,
+        signer
+      );
+
+      // 获取 WETH 余额
+      const wethBalance = await tokenInContract.balanceOf(signer.address);
+      console.log(
+        `WETH balance: ${ethers.utils.formatUnits(
+          wethBalance,
+          tokenIn.decimals
+        )} ${tokenIn.symbol}`
+      );
+
+      // 检查 WETH 余额是否足够
+      if (wethBalance.lt(amountIn)) {
+        console.log(
+          `Not enough ${tokenIn.symbol} balance. Depositing ETH to WETH...`
+        );
+        // 调用 WETH 的 deposit 方法
+        const depositTx = await tokenInContract.deposit({
+          value: amountIn,
+          gasLimit: 200000,
+          maxFeePerGas: maxFeePerGas, // 设置 maxFeePerGas
+        });
+        await depositTx.wait();
+        console.log("Deposit completed.");
+      } else {
+        console.log(
+          `${tokenIn.symbol} balance is sufficient. Skipping deposit.`
+        );
+      }
+
+      // 批准代币
+      const approvalTx = await tokenInContract.approve(
+        ROUTER_ADDRESS,
+        amountIn,
+        {
+          maxFeePerGas: maxFeePerGas, // 设置 maxFeePerGas
+        }
+      );
+      console.log("Approving token...");
+      await approvalTx.wait();
+      console.log("Token approved.");
+
+      // 获取输出代币合约
+      const tokenOutContract = new ethers.Contract(
+        tokenOut.id,
+        ERC20,
+        signer
+      );
+
+      // 构造调用参数
       const params = {
-        tokenIn: tokenOne.tokenAddress,
-        tokenOut: tokenTwo.tokenAddress,
-        fee: 3000,
-        recipient: account,
-        amountIn: amountIn,
-        amountOutMinimum: amountOutMinimum,
-        sqrtPriceLimitX96: 0, // 价格限制，默认为 0
-        deadline: deadline,
+        tokenIn: tokenIn.id,
+        tokenOut: tokenOut.id,
+        fee: 3000, //稳定币取0.05%, 非稳定币取.03%
+        account,
+        deadline,
+        amountIn,
+        amountOutMinimum,
+        sqrtPriceLimitX96: ethers.constants.Zero, // 价格限制（可以设置为0，表示没有限制）
       };
 
-      // todo 报错
-      const gasPrice = await provider.getGasPrice();
-      const swapTx = await uniswapRouter.exactInputSingle(params, {
+      // 执行 swap
+      const swapTx = await router.exactInputSingle(params, {
         gasLimit: 300000,
-        gasPrice: gasPrice.mul(2),
+        maxFeePerGas: maxFeePerGas, // 设置 maxFeePerGas
       });
-
-      console.log(`Swap transaction sent: ${swapTx.hash}`);
+      console.log("Swapping tokens...");
       await swapTx.wait();
-      console.log("Swap transaction confirmed");
+      console.log("Swap completed.");
 
-      // let singleSwapToken;
-      // let weth;
-      // let dai;
-      // singleSwapToken = await connectingWithSingleSwapToken();
-      // weth = await connectingWithIWTHToken();
-      // dai = await connectingWithDAIToken();
+      const wethBalanceAfterSwap = await tokenInContract.balanceOf(
+        signer.address
+      );
+      console.log(
+        `${tokenIn.symbol} balance after swap: ${ethers.utils.formatUnits(
+          wethBalanceAfterSwap,
+          tokenIn.decimals
+        )} ${tokenIn.symbol}`
+      );
 
-      // console.log(singleSwapToken);
-      // const decimals0 = 18;
-      // const inputAmount = swapAmount;
-      // const amountIn = ethers.utils.parseUnits(
-      //   inputAmount.toString(),
-      //   decimals0
-      // );
-
-      // await weth.deposit({ value: amountIn });
-      // console.log(amountIn);
-      // await weth.approve(singleSwapToken.address, amountIn);
-      // //SWAP
-      // const transaction = await singleSwapToken.swapExactInputSingle(
-      //   tokenOne.tokenAddress.tokenAddress,
-      //   tokenTwo.tokenAddress.tokenAddress,
-      //   amountIn,
-      //   {
-      //     gasLimit: 300000,
-      //   }
-      // );
-      // await transaction.wait();
-      // console.log(transaction);
-      // const balance = await dai.balanceOf(account);
-      // const transferAmount = BigNumber.from(balance).toString();
-      // const ethValue = ethers.utils.formatEther(transferAmount);
-      // setDai(ethValue);
-      // console.log("DAI balance:", ethValue);
+      const usdtBalanceAfterSwap = await tokenOutContract.balanceOf(
+        signer.address
+      );
+      console.log(
+        `${tokenOut.symbol} balance after swap: ${ethers.utils.formatUnits(
+          usdtBalanceAfterSwap,
+          tokenOut.decimals
+        )} ${tokenOut.symbol}`
+      );
     } catch (error) {
       console.log(error);
     }

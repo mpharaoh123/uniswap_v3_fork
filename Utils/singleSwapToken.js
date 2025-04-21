@@ -1,18 +1,15 @@
-const { ethers } = require("hardhat");
-const SwapRouterAbi =
-  require("@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json").abi;
-const ROUTER_ADDRESS = require("../constants/constants").ROUTER_ADDRESS;
-const {
-  WETH_ABI,
-  ERC20_ABI,
-  tokenListMainnet,
-} = require("../constants/constants");
+import SwapRouterAbi from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
+import { ethers } from "hardhat";
+import { ERC20_ABI, ROUTER_ADDRESS, WETH_ABI } from "../constants/constants";
 
-/*
-  npx hardhat run --network localhost scripts/mainnetContract/swapTokenMainnet.js
-*/
-
-async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
+export const swapTokens = async (
+  account,
+  tokenIn,
+  tokenOut,
+  amountInNum,
+  slippage,
+  deadline
+) => {
   try {
     const provider = ethers.provider; // 获取当前的 Provider
     const [signer] = await ethers.getSigners();
@@ -32,20 +29,6 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
       (amountInNum * (1 - slippage)).toString(),
       tokenOut.decimals
     ); // 最小输出代币数量
-
-    const sqrtPriceLimitX96 = ethers.constants.Zero; // 价格限制（可以设置为0，表示没有限制）
-
-    // 构造调用参数
-    const params = {
-      tokenIn: tokenIn.id,
-      tokenOut: tokenOut.id,
-      fee,
-      recipient,
-      deadline,
-      amountIn,
-      amountOutMinimum,
-      sqrtPriceLimitX96,
-    };
 
     // 获取 WETH 合约
     const tokenInContract = new ethers.Contract(tokenIn.id, WETH_ABI, signer);
@@ -102,6 +85,18 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
       )} ${tokenOut.symbol}`
     );
 
+    // 构造调用参数
+    const params = {
+      tokenIn: tokenIn.id,
+      tokenOut: tokenOut.id,
+      fee: 3000, //稳定币取0.05%, 非稳定币取.03%
+      recipient,
+      deadline,
+      amountIn,
+      amountOutMinimum,
+      sqrtPriceLimitX96: ethers.constants.Zero, // 价格限制（可以设置为0，表示没有限制）
+    };
+
     // 执行 swap
     const swapTx = await router.exactInputSingle(params, {
       gasLimit: 300000,
@@ -133,24 +128,4 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
   } catch (error) {
     console.error("Error:", error);
   }
-}
-
-async function main() {
-  const tokenIn = tokenListMainnet[0]; // WETH
-  const amountInNum = "10"; // 输入代币数量
-  const fee = 3000; // 池的手续费等级（例如 0.3%）
-
-  // 遍历 tokenListMainnet 中的其他代币
-  for (let i = 1; i < tokenListMainnet.length; i++) {
-    const tokenOut = tokenListMainnet[i];
-    console.log(`Swapping ${tokenIn.symbol} to ${tokenOut.symbol}...`);
-    await swapTokens(tokenIn, tokenOut, amountInNum, fee);
-  }
-}
-
-main()
-  .then(() => process.exit(0))
-  .catch((error) => {
-    console.error(error);
-    process.exit(1);
-  });
+};

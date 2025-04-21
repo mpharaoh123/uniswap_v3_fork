@@ -85,29 +85,6 @@ export const connectingWithLIfeToken = async () => {
   }
 };
 
-//FETCHING CONTRACT------------------------
-
-//SingleSwapToken TOKEN FETCHING
-export const fetchSingleSwapContract = (signerOrProvider) =>
-  new ethers.Contract(
-    SingleSwapTokenAddress,
-    SingleSwapTokenABI,
-    signerOrProvider
-  );
-
-//CONNECTING With SingleSwapToken TOKEN CONTRACT
-export const connectingWithSingleSwapToken = async () => {
-  try {
-    const web3modal = new Web3Modal();
-    const connection = await web3modal.connect();
-    const provider = new ethers.providers.Web3Provider(connection);
-    const signer = provider.getSigner();
-    const contract = fetchSingleSwapContract(signer);
-    return contract;
-  } catch (error) {
-    console.log(error);
-  }
-};
 
 //FETCHING CONTRACT------------------------
 

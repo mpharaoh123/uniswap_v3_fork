@@ -1,10 +1,10 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
 import Image from "next/image";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 // INTERNAL IMPORT
-import Style from "./HeroSection.module.css";
 import images from "../../assets";
-import { Token, SearchToken } from "../index";
+import { SearchToken, Token } from "../index";
+import Style from "./HeroSection.module.css";
 
 // CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
@@ -209,7 +209,8 @@ const HeroSection = ({}) => {
                 tokenOne,
                 tokenTwo,
                 inputAmount,
-                outputAmount,
+                slippage: 0.01,
+                deadline: Math.floor(Date.now() / 1000) + 600,
               })
             }
           >
