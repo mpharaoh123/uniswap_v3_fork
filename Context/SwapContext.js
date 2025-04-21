@@ -1,26 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { ethers, BigNumber, errors } from "ethers";
-import Web3Modal from "web3modal";
-import { Token, CurrencyAmount, TradeType, Percent } from "@uniswap/sdk-core";
 import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
+import { BigNumber, ethers } from "ethers";
+import React, { useEffect, useState } from "react";
+import Web3Modal from "web3modal";
 import {
   poolData,
   V3_SWAP_ROUTER_ADDRESS as UNISWAP_V3_ROUTER_ADDRESS,
-  ALCHEMY_URL,
 } from "./constants";
 
 //INTERNAL IMPORT
 import {
   checkIfWalletConnected,
-  connectWallet,
   connectingWithUserStorageContract,
+  connectWallet,
 } from "../Utils/appFeatures";
 
+import { addLiquidityExternal } from "../Utils/addLiquidity";
+import { connectingWithPoolContract } from "../Utils/deployPool";
 import { getPrice } from "../Utils/fetchingPrice";
 import { swapUpdatePrice } from "../Utils/swapUpdatePrice";
-import { addLiquidityExternal } from "../Utils/addLiquidity";
-import { getLiquidityData } from "../Utils/checkLiquidity";
-import { connectingWithPoolContract } from "../Utils/deployPool";
 
 import ERC20 from "./ERC20.json";
 
@@ -64,7 +61,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       console.log("poolData", poolData);
       for (const el of poolData) {
         let convertTokenBal = "";
-        if (el.symbol == 'WETH') {
+        if (el.symbol == "WETH") {
           const balance = await provider.getBalance(userAccount);
           convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
         } else {

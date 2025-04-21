@@ -1,5 +1,3 @@
-import singleSwapToken from "./SingleSwapToken.json";
-import swapMultiHop from "./SwapMultiHop.json";
 import IWETH from "./IWETH.json";
 import userStorgeData from "./UserStorageData.json";
 import poolDataList from "./poolData.json";
@@ -16,14 +14,7 @@ export const NON_FUNGABLE_POSITION_MANAGER_ADDRESS =
 export const V3_SWAP_QUOTER_ADDRESS =
   "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 
-//SINGLE SWAP TOKEN
-export const SingleSwapTokenAddress =
-  "0xfD3e0cEe740271f070607aEddd0Bf4Cf99C92204";
-export const SingleSwapTokenABI = singleSwapToken.abi;
-
-// SWAP MULTIHOP
-export const SwapMultiHopAddress = "0x01D4648B896F53183d652C02619c226727477C82";
-export const SwapMultiHopABI = swapMultiHop.abi;
+export const ERC20_ABI = require("@uniswap/v2-core/build/IERC20.json").abi;
 
 //IWETH
 export const IWETHAddress = "0x2d13826359803522cCe7a4Cfa2c1b582303DD0B4";

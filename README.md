@@ -2,9 +2,7 @@
 
 0. node version: 18.12.1
 1. npm i 失败的话，del package-lock.json, del yarn.lock, npm cache clean --force，重试
-2. 分别用了 V3_SWAP_QUOTER 和 AlphaRouter 来获取 swap 价格
-3. 用 AlphaRouter 进行 swap 不成功
-4. 不能用 npx hard node 启动节点，节点上还没有部署 usdc, usdt 等主流代币，要用 npm run fork 启动
+2. 不能用 npx hard node 启动节点，节点上还没有部署 usdc, usdt 等主流代币，要用 npm run fork 启动
 
 # scripts command
 

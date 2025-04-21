@@ -31,7 +31,6 @@ const HeroSection = ({}) => {
     swapUpdatePrice,
   } = useContext(SwapTokenContext);
 
-  // TOKEN 1 和 TOKEN 2
   const [tokenOne, setTokenOne] = useState({
     name: "",
     image: "",
@@ -86,7 +85,7 @@ const HeroSection = ({}) => {
       timeoutRef.current = window.setTimeout(() => {
         setSearch(true);
         callOutPut(inputAmount);
-      }, 1000); // 延迟 2 秒后执行
+      }, 1000); // 延迟 1 秒后执行
     }
   }, [tokenOne, tokenTwo, inputAmount]);
 
