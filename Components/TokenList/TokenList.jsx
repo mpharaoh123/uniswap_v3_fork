@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import React, { useEffect } from "react";
 
 //INTERNAL IMPORT
-import Style from "./TokenList.module.css";
 import images from "../../assets";
-import { SwapTokenContext } from "../../Context/SwapContext";
+import Style from "./TokenList.module.css";
 
 const TokenList = ({ tokenDate, setOpenTokenBox }) => {
   // const { tokenData } = useContext(SwapTokenContext);

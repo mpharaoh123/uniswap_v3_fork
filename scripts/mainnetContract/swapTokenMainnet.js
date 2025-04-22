@@ -36,18 +36,6 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
 
     const sqrtPriceLimitX96 = ethers.constants.Zero; // 价格限制（可以设置为0，表示没有限制）
 
-    // 构造调用参数
-    const params = {
-      tokenIn: tokenIn.id,
-      tokenOut: tokenOut.id,
-      fee,
-      recipient,
-      deadline,
-      amountIn,
-      amountOutMinimum,
-      sqrtPriceLimitX96,
-    };
-
     // 获取 WETH 合约
     const tokenInContract = new ethers.Contract(tokenIn.id, WETH_ABI, signer);
 
@@ -103,6 +91,19 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
       )} ${tokenOut.symbol}`
     );
 
+    // 构造调用参数
+    const params = {
+      tokenIn: tokenIn.id,
+      tokenOut: tokenOut.id,
+      fee,
+      recipient,
+      deadline,
+      amountIn,
+      amountOutMinimum,
+      sqrtPriceLimitX96,
+    };
+    console.log("params", params);
+
     // 执行 swap
     const swapTx = await router.exactInputSingle(params, {
       gasLimit: 300000,
@@ -138,12 +139,13 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
 
 async function main() {
   const tokenIn = tokenListMainnet[0]; // WETH
-  const amountInNum = "10"; // 输入代币数量
+  const amountInNum = "0.1"; // 输入代币数量
   const fee = 3000; // 池的手续费等级（例如 0.3%）
   const slippage = 0.001; //默认情况下，Uniswap V3将滑点容忍度设置为0.1%
 
   // 遍历 tokenListMainnet 中的其他代币
-  for (let i = 1; i < tokenListMainnet.length; i++) {
+  // for (let i = 1; i < tokenListMainnet.length; i++) {
+  for (let i = 1; i < 2; i++) {
     const tokenOut = tokenListMainnet[i];
     console.log(`Swapping ${tokenIn.symbol} to ${tokenOut.symbol}...`);
     await swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage);

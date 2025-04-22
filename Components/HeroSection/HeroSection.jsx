@@ -18,8 +18,8 @@ const HeroSection = ({}) => {
   const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
   const [poolMessage, setPoolMessage] = useState("");
   const [search, setSearch] = useState(false);
-  const [inputAmount, setInputAmount] = useState(0);
-  const [outputAmount, setOutPutAmount] = useState(0);
+  const [inputAmount, setInputAmount] = useState("1");
+  const [outputAmount, setOutPutAmount] = useState("");
   const timeoutRef = useRef(null);
 
   const {
@@ -53,6 +53,8 @@ const HeroSection = ({}) => {
     if (tokenData.length > 0) {
       console.log("herosection tokenData:", tokenData);
       const firstToken = tokenData[0];
+      const secondToken = tokenData[2];
+
       setTokenOne({
         name: firstToken.name,
         image: "",
@@ -61,8 +63,6 @@ const HeroSection = ({}) => {
         tokenAddress: firstToken.tokenAddress,
         decimals: firstToken.decimals,
       });
-
-      const secondToken = tokenData[2];
       setTokenTwo({
         name: secondToken.name,
         image: "",
@@ -150,10 +150,10 @@ const HeroSection = ({}) => {
           <input
             type="number"
             placeholder="0"
+            value={inputAmount.toString()} // 添加 value 属性以绑定输入值
             onChange={(e) => {
-              if (e.target.value) {
-                setInputAmount(e.target.value); // 更新 swapAmount
-              }
+              const value = e.target.value;
+              setInputAmount(value ? parseFloat(value) : ""); // 更新 inputAmount
             }}
           />
           <button onClick={() => setOpenTokenOne(true)}>
@@ -201,18 +201,23 @@ const HeroSection = ({}) => {
         )}
 
         {account ? (
+          // 确保在调用 singleSwapToken 之前，tokenOne、tokenTwo 和 inputAmount 已经被正确设置
           <button
             className={Style.HeroSection_box_btn}
-            onClick={() =>
-              singleSwapToken({
-                account,
-                tokenOne,
-                tokenTwo,
-                inputAmount,
-                slippage: 0.01,
-                deadline: Math.floor(Date.now() / 1000) + 600,
-              })
-            }
+            onClick={() => {
+              if (tokenOne.symbol && tokenTwo.symbol && inputAmount) {
+                singleSwapToken({
+                  account,
+                  tokenIn: tokenOne,
+                  tokenOut: tokenTwo,
+                  amountInNum: inputAmount.toString(),
+                  slippage: 0.01,
+                  deadline: Math.floor(Date.now() / 1000) + 600,
+                });
+              } else {
+                alert("Please select both tokens and enter an amount.");
+              }
+            }}
           >
             Swap
           </button>

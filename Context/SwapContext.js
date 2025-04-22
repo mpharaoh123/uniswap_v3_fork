@@ -1,22 +1,21 @@
+import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core";
+import { AlphaRouter } from "@uniswap/smart-order-router";
+import { abi as ERC20_ABI } from "@uniswap/v2-core/build/IERC20.json";
+import {abi as QuoterABI} from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json";
 import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
+import axios from "axios";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
+import Web3 from "web3";
 import Web3Modal from "web3modal";
-import { IWETHABI, poolData, V3_SWAP_ROUTER_ADDRESS } from "./constants";
-
-//INTERNAL IMPORT
 import {
-  checkIfWalletConnected,
-  connectingWithUserStorageContract,
-  connectWallet,
-} from "../Utils/appFeatures";
-
-import { addLiquidityExternal } from "../Utils/addLiquidity";
-import { connectingWithPoolContract } from "../Utils/deployPool";
-import { getPrice } from "../Utils/fetchingPrice";
-import { swapUpdatePrice } from "../Utils/swapUpdatePrice";
-
-import ERC20 from "./ERC20.json";
+  ALCHEMY_URL,
+  ETHERSCAN_API_KEY,
+  poolData,
+  V3_SWAP_ROUTER_ADDRESS,
+  WETH_ABI,
+  V3_SWAP_QUOTER_ADDRESS,
+} from "./constants";
 
 export const SwapTokenContext = React.createContext();
 
@@ -62,7 +61,7 @@ export const SwapTokenContextProvider = ({ children }) => {
           const balance = await provider.getBalance(userAccount);
           convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
         } else {
-          const contract = new ethers.Contract(el.id, ERC20, provider);
+          const contract = new ethers.Contract(el.id, ERC20_ABI, provider);
           const ercBalance = await contract.balanceOf(userAccount);
           convertTokenBal = ethers.utils.formatUnits(ercBalance, el.decimals);
         }
@@ -116,6 +115,89 @@ export const SwapTokenContextProvider = ({ children }) => {
     } else {
       return [address2, address1];
     }
+  };
+
+  const swapUpdatePrice = async (
+    tokenOne,
+    tokenTwo,
+    inputAmount,
+    slippageAmount,
+    deadline,
+    walletAddress
+  ) => {
+    const chainId = 1;
+    const provider = new ethers.providers.JsonRpcProvider(
+      // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
+      // "127.0.0.1:8545",
+      ALCHEMY_URL
+    );
+
+    const tokenOneInit = new Token(
+      chainId,
+      tokenOne.tokenAddress,
+      tokenOne.decimals,
+      tokenOne.symbol,
+      tokenOne.name
+    );
+    const tokenTwoInit = new Token(
+      chainId,
+      tokenTwo.tokenAddress,
+      tokenTwo.decimals,
+      tokenTwo.symbol,
+      tokenTwo.name
+    );
+
+    const percentSlippage = new Percent(slippageAmount, 100);
+    const tokenOneWei = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      tokenOne.decimals
+    );
+    const currencyAmount = CurrencyAmount.fromRawAmount(
+      tokenOneInit,
+      BigNumber.from(tokenOneWei)
+    );
+
+    const router = new AlphaRouter({ chainId: chainId, provider: provider });
+
+    const route = await router.route(
+      currencyAmount,
+      tokenTwoInit,
+      TradeType.EXACT_INPUT,
+      {
+        recipient: walletAddress,
+        slippageTolerance: percentSlippage,
+        deadline: deadline,
+      }
+    );
+
+    const transaction = {
+      data: route.methodParameters.calldata,
+      to: V3_SWAP_ROUTER_ADDRESS,
+      value: BigNumber.from(route.methodParameters.value),
+      from: walletAddress,
+      gasPrice: BigNumber.from(route.gasPriceWei),
+      gasLimit: ethers.utils.hexlify(1000000),
+    };
+
+    const quoteAmountOut = route.quote.toFixed(6);
+    const ratio = (inputAmount / quoteAmountOut).toFixed(3);
+
+    // 继续swap没成功
+    // const signer = provider.getSigner() // 用不了
+    // const signer = new ethers.Wallet("ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", provider)
+    // console.log("address", await signer.getAddress());
+
+    // const tx = await signer.sendTransaction(transaction);
+    // console.log(`Transaction hash: ${tx.hash}`);
+
+    // // 等待交易完成
+    // const receipt = await tx.wait();
+    // console.log(`Transaction receipt:`, receipt);
+
+    // return { txHash: tx.hash, quoteAmountOut, ratio };
+
+    console.log(quoteAmountOut, ratio);
+    return [transaction, quoteAmountOut, ratio];
   };
 
   //CREATE AND ADD LIQUIDITY
@@ -199,15 +281,15 @@ export const SwapTokenContextProvider = ({ children }) => {
     slippage,
     deadline,
   }) => {
-    console.log(
-      "singleSwapToken param: ",
-      account,
-      tokenIn,
-      tokenOut,
-      amountInNum,
-      slippage,
-      deadline
-    );
+    // console.log(
+    //   "singleSwapToken param: ",
+    //   account,
+    //   tokenIn.symbol,
+    //   tokenOut.symbol,
+    //   amountInNum,
+    //   slippage,
+    //   deadline
+    // );
     try {
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
@@ -219,28 +301,27 @@ export const SwapTokenContextProvider = ({ children }) => {
       const baseFeePerGas = block.baseFeePerGas;
       const maxFeePerGas = baseFeePerGas.mul(3).div(2); // 设置为 baseFeePerGas 的 1.5 倍
 
-      const uniswapRouter = new ethers.Contract(
+      const router = new ethers.Contract(
         V3_SWAP_ROUTER_ADDRESS,
         SwapRouter.abi,
         signer
       );
 
-      const amountIn = ethers.utils.parseUnits(inputAmount, tokenIn.decimals);
-
+      const amountIn = ethers.utils.parseUnits(amountInNum, tokenIn.decimals);
       const amountOutMinimum = ethers.utils.parseUnits(
-        (inputAmount * (1 - slippage)).toString(),
+        (amountInNum * (1 - slippage)).toString(),
         tokenOut.decimals
       ); // 最小输出代币数量
 
       // 获取 WETH 合约
       const tokenInContract = new ethers.Contract(
-        tokenIn.id,
-        IWETHABI,
+        tokenIn.tokenAddress,
+        WETH_ABI,
         signer
       );
 
       // 获取 WETH 余额
-      const wethBalance = await tokenInContract.balanceOf(signer.address);
+      const wethBalance = await tokenInContract.balanceOf(account);
       console.log(
         `WETH balance: ${ethers.utils.formatUnits(
           wethBalance,
@@ -269,7 +350,7 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 批准代币
       const approvalTx = await tokenInContract.approve(
-        ROUTER_ADDRESS,
+        V3_SWAP_ROUTER_ADDRESS,
         amountIn,
         {
           maxFeePerGas: maxFeePerGas, // 设置 maxFeePerGas
@@ -281,22 +362,23 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 获取输出代币合约
       const tokenOutContract = new ethers.Contract(
-        tokenOut.id,
-        ERC20,
+        tokenOut.tokenAddress,
+        ERC20_ABI,
         signer
       );
 
       // 构造调用参数
       const params = {
-        tokenIn: tokenIn.id,
-        tokenOut: tokenOut.id,
+        tokenIn: tokenIn.tokenAddress,
+        tokenOut: tokenOut.tokenAddress,
         fee: 3000, //稳定币取0.05%, 非稳定币取.03%
-        account,
+        recipient: account,
         deadline,
         amountIn,
         amountOutMinimum,
         sqrtPriceLimitX96: ethers.constants.Zero, // 价格限制（可以设置为0，表示没有限制）
       };
+      console.log("params", params);
 
       // 执行 swap
       const swapTx = await router.exactInputSingle(params, {
@@ -307,9 +389,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       await swapTx.wait();
       console.log("Swap completed.");
 
-      const wethBalanceAfterSwap = await tokenInContract.balanceOf(
-        signer.address
-      );
+      const wethBalanceAfterSwap = await tokenInContract.balanceOf(account);
       console.log(
         `${tokenIn.symbol} balance after swap: ${ethers.utils.formatUnits(
           wethBalanceAfterSwap,
@@ -317,15 +397,156 @@ export const SwapTokenContextProvider = ({ children }) => {
         )} ${tokenIn.symbol}`
       );
 
-      const usdtBalanceAfterSwap = await tokenOutContract.balanceOf(
-        signer.address
-      );
+      const usdtBalanceAfterSwap = await tokenOutContract.balanceOf(account);
       console.log(
         `${tokenOut.symbol} balance after swap: ${ethers.utils.formatUnits(
           usdtBalanceAfterSwap,
           tokenOut.decimals
         )} ${tokenOut.symbol}`
       );
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const getPrice = async (inputAmount, tokenAddrss0, tokenAddrss1, fee) => {
+    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
+
+    // const tokenAbi0 = await getAbi(tokenAddrss0);
+    // const tokenAbi1 = await getAbi(tokenAddrss1);
+
+    const tokenContract0 = new ethers.Contract(
+      tokenAddrss0,
+      ERC20_ABI,
+      provider
+    );
+    const tokenContract1 = new ethers.Contract(
+      tokenAddrss1,
+      ERC20_ABI,
+      provider
+    );
+
+    const tokenSymbol0 = await tokenContract0.symbol();
+    const tokenSymbol1 = await tokenContract1.symbol();
+    const tokenDecimals0 = await tokenContract0.decimals();
+    const tokenDecimals1 = await tokenContract1.decimals();
+
+    const quoterContract = new ethers.Contract(
+      V3_SWAP_QUOTER_ADDRESS,
+      QuoterABI,
+      provider
+    );
+    // const immutables = await getPoolImmutables(poolContract);
+    const amountIn = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      tokenDecimals0
+    );
+
+    const quotedAmountOut =
+      await quoterContract.callStatic.quoteExactInputSingle(
+        tokenAddrss0,
+        tokenAddrss1,
+        fee,
+        amountIn,
+        0
+      );
+
+    const amountOut = ethers.utils.formatUnits(quotedAmountOut, tokenDecimals1);
+    return [amountOut, tokenSymbol0, tokenSymbol1];
+  };
+
+  // quoterContract.callStatic.quoteExactInput方法获取价格报错
+  const getPrice2 = async (inputAmount, tokenAddrss0, tokenAddrss1, fee) => {
+    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
+    const tokenAbi0 = await getAbi(tokenAddrss0);
+    const tokenAbi1 = await getAbi(tokenAddrss1);
+
+    const tokenContract0 = new ethers.Contract(
+      tokenAddrss0,
+      tokenAbi0,
+      provider
+    );
+    const tokenContract1 = new ethers.Contract(
+      tokenAddrss1,
+      tokenAbi1,
+      provider
+    );
+
+    const tokenSymbol0 = await tokenContract0.symbol();
+    const tokenSymbol1 = await tokenContract1.symbol();
+    const tokenDecimals0 = await tokenContract0.decimals();
+    const tokenDecimals1 = await tokenContract1.decimals();
+
+    const quoterContract = new ethers.Contract(
+      V3_SWAP_QUOTER_ADDRESS,
+      QuoterABI,
+      provider
+    );
+    // const immutables = await getPoolImmutables(poolContract);
+    const amountIn = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      tokenDecimals0
+    );
+
+    const path = ethers.utils.defaultAbiCoder.encode(
+      ["address", "uint24", "address", "uint24", "address"],
+      [tokenAddrss0, 3000, wethAddr, 3000, tokenAddrss1]
+    );
+
+    const quotedAmountOut = await quoterContract.callStatic.quoteExactInput(
+      path,
+      amountIn
+    );
+
+    const amountOut = ethers.utils.formatUnits(quotedAmountOut, tokenDecimals1);
+    return [amountOut, tokenSymbol0, tokenSymbol1];
+  };
+
+  // 需要开梯子
+  const getAbi = async (address) => {
+    const url = `https://api.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
+    const res = await axios.get(url);
+    // console.log("res", res);
+    const abi = JSON.parse(res.data.result);
+    return abi;
+  };
+
+  const getBytecode = async (address) => {
+    // 这种方法获取的bytecode和etherscan上拉下来的不一致
+    try {
+      const web3 = new Web3(
+        `https://eth-mainnet.g.alchemy.com/v2/1Dtrq8-CWOYN2T7S8x2GuNOapwh5jq9f`
+      );
+      console.log("current token", address);
+      const bytecode = await web3.eth.getCode(address);
+      console.log(`Bytecode for contract ${address}:`, bytecode);
+    } catch (error) {
+      console.error("Error fetching bytecode:", error);
+    }
+  };
+
+  const checkIfWalletConnected = async () => {
+    try {
+      if (!window.ethereum) return console.log("Install Web3 Wallet");
+      const accounts = await window.ethereum.request({
+        method: "eth_accounts",
+      });
+      const firstAccount = accounts[0];
+      return firstAccount;
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  //CONNECT WALLET
+  const connectWallet = async () => {
+    try {
+      if (!window.ethereum) return console.log("Install Web3 Wallet");
+      const accounts = await window.ethereum.request({
+        method: "eth_requestAccounts",
+      });
+      const firstAccount = accounts[0];
+      return firstAccount;
     } catch (error) {
       console.log(error);
     }
