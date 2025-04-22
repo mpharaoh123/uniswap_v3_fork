@@ -18,7 +18,7 @@ const HeroSection = ({}) => {
   const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
   const [poolMessage, setPoolMessage] = useState("");
   const [search, setSearch] = useState(false);
-  const [inputAmount, setInputAmount] = useState("1");
+  const [inputAmount, setInputAmount] = useState("100");
   const [outputAmount, setOutPutAmount] = useState("");
   const timeoutRef = useRef(null);
 
@@ -51,8 +51,8 @@ const HeroSection = ({}) => {
 
   useEffect(() => {
     if (tokenData.length > 0) {
-      console.log("herosection tokenData:", tokenData);
-      const firstToken = tokenData[0];
+      console.log("hero section tokenData:", tokenData);
+      const firstToken = tokenData[1];
       const secondToken = tokenData[2];
 
       setTokenOne({
@@ -214,6 +214,7 @@ const HeroSection = ({}) => {
                   slippage: 0.01,
                   deadline: Math.floor(Date.now() / 1000) + 600,
                 });
+                //todo swap后更新tokenOne和tokenTwo余额
               } else {
                 alert("Please select both tokens and enter an amount.");
               }

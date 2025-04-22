@@ -279,8 +279,8 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
                   // console.log("tokenAmountOne:", tokenAmountOne);
                   // console.log("tokenAmountTwo:", tokenAmountTwo);
                   createLiquidityAndPool({
-                    tokenAddress0: tokenOne.tokenAddress,
-                    tokenAddress1: tokenTwo.tokenAddress,
+                    tokenOne: tokenOne,
+                    tokenTwo: tokenTwo,
                     fee: fee,
                     tokenPrice1: minPrice,
                     tokenPrice2: maxPrice,
