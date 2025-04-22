@@ -122,6 +122,8 @@ export const SwapTokenContextProvider = ({ children }) => {
       ALCHEMY_URL
     );
 
+    console.log(tokenOne, "\n", tokenTwo);
+
     const tokenOneInit = new Token(
       chainId,
       tokenOne.tokenAddress,

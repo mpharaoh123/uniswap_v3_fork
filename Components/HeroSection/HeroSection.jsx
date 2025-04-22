@@ -74,14 +74,20 @@ const HeroSection = ({}) => {
     }
   }, [tokenData]);
 
-  // 监听 tokenOne 和 tokenTwo 的变化
   useEffect(() => {
     // 清除之前的定时器，避免重复调用
     if (timeoutRef.current !== null) {
       clearTimeout(timeoutRef.current);
     }
-    // 如果 inputAmount 大于 0，则设置新的定时器
-    if (inputAmount > 0) {
+
+    // 检查 tokenOne、tokenTwo 和 inputAmount 是否有效
+    if (
+      tokenOne.name &&
+      tokenTwo.name &&
+      inputAmount > 0 &&
+      !isNaN(inputAmount)
+    ) {
+      // 如果 inputAmount 大于 0，则设置新的定时器
       timeoutRef.current = window.setTimeout(() => {
         setSearch(true);
         callOutPut(inputAmount);
