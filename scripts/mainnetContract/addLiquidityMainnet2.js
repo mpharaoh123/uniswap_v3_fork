@@ -6,6 +6,7 @@ const {
   NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
   tokenListMainnet,
   WETH_ADDRESS,
+  QUOTER_ADDRESS,
 } = require("../constants/constants");
 
 const artifacts = {
@@ -17,32 +18,30 @@ const artifacts = {
 };
 
 const { Contract, BigNumber } = require("ethers");
-const { Token } = require("@uniswap/sdk-core");
-const { Pool, Position, nearestUsableTick } = require("@uniswap/v3-sdk");
+const { nearestUsableTick } = require("@uniswap/v3-sdk");
 const bn = require("bignumber.js");
 const { ethers } = require("hardhat");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 /*
-  传入 liquidityAmount 添加流动性
   npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet2.js
 */
 
 const token0 = tokenListMainnet[1]; //0为weth
 const token1 = tokenListMainnet[2];
 const fee = 500; //取值 0.01%:100 0.05%:500 0.3%:3000 1%:10000
-const liquidityAmount = "0.000001"; //流动性数量，单位ether
+const amount0Desired = ethers.utils.parseUnits("1", token0.decimals);
 
-async function main(token0, token1, liquidityAmount) {
+async function main(token0, token1, amount0Desired) {
+  const [signer] = await ethers.getSigners();
+  const provider = ethers.provider;
+  const address = await signer.getAddress();
+
   // 确保 token0 的地址小于 token1 的地址
   if (token1.id.toLowerCase() < token0.id.toLowerCase()) {
     [token0, token1] = [token1, token0];
   }
 
-  // 第一个账户的 signer
-  const [signer] = await ethers.getSigners();
-  const provider = ethers.provider;
-  const address = await signer.getAddress();
   const ethBalance = await provider.getBalance(address);
   const balanceInEther = ethers.utils.formatEther(ethBalance); // 将余额从 Wei 转换为 Ether
   console.log(`ETH Balance: ${balanceInEther} ETH`);
@@ -148,12 +147,13 @@ async function main(token0, token1, liquidityAmount) {
     signer
   );
 
-  const poolData = await getPoolData(poolContract);
-
-  // todo
-  
-  amount0Desired = amount0Desired.toString();
-  amount1Desired = amount1Desired.toString();
+  const amount1Desired = await getPrice(
+    signer,
+    amount0Desired,
+    token0,
+    token1,
+    fee
+  );
 
   console.log(
     `${token0.symbol} Required: ${ethers.utils.formatUnits(
@@ -198,6 +198,7 @@ async function main(token0, token1, liquidityAmount) {
     throw new Error(`Insufficient ${token1.symbol} balance`);
   }
 
+  const poolData = await getPoolData(poolContract);
   const params = {
     token0: token0.id,
     token1: token1.id,
@@ -300,30 +301,34 @@ const encodePriceSqrt = (reserve1, reserve0) => {
 };
 
 const getPrice = async (signer, inputAmount, token0, token1, fee) => {
-  const quoterContract = new ethers.Contract(
-    V3_SWAP_QUOTER_ADDRESS,
-    QuoterAbi.abi,
-    signer
-  );
-  // const immutables = await getPoolImmutables(poolContract);
-  const amountIn = ethers.utils.parseUnits(
-    inputAmount.toString(),
-    token0.decimals
-  );
+  try {
+    const quoterContract = new ethers.Contract(
+      QUOTER_ADDRESS,
+      artifacts.QuoterAbi.abi,
+      signer
+    );
+    // const immutables = await getPoolImmutables(poolContract);
+    const amountIn = ethers.utils.parseUnits(
+      inputAmount.toString(),
+      token0.decimals
+    );
 
-  const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
-    token0.id,
-    token1.id,
-    fee,
-    amountIn,
-    0
-  );
-
-  const amountOut = ethers.utils.formatUnits(quotedAmountOut, token1.decimals);
-  return amountOut;
+    const quotedAmountOut =
+      await quoterContract.callStatic.quoteExactInputSingle(
+        token0.id,
+        token1.id,
+        fee,
+        amountIn,
+        0
+      );
+    return ethers.BigNumber.from(quotedAmountOut);
+  } catch (error) {
+    console.error("Error calling getPrice:", error);
+    throw error;
+  }
 };
 
-main(token0, token1, liquidityAmount)
+main(token0, token1, amount0Desired)
   .then(() => process.exit(0))
   .catch((error) => {
     console.error(error);
