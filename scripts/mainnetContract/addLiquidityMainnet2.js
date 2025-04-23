@@ -13,6 +13,7 @@ const artifacts = {
   UniswapV3Factory: require("@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json"),
   NonfungiblePositionManager: require("@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json"),
   IUniswapV3PoolABI: require("@uniswap/v3-core/artifacts/contracts/interfaces/IUniswapV3Pool.sol/IUniswapV3Pool.json"),
+  QuoterAbi: require("@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json"),
 };
 
 const { Contract, BigNumber } = require("ethers");
@@ -23,13 +24,13 @@ const { ethers } = require("hardhat");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 /*
-  npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet.js
+  传入 liquidityAmount 添加流动性
+  npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet2.js
 */
 
 const token0 = tokenListMainnet[1]; //0为weth
 const token1 = tokenListMainnet[2];
 const fee = 500; //取值 0.01%:100 0.05%:500 0.3%:3000 1%:10000
-const range = 10; // 设置价格范围为当前价格上下 range 个 tick，数值越大，覆盖的流动性范围越大，需要的代币越多
 const liquidityAmount = "0.000001"; //流动性数量，单位ether
 
 async function main(token0, token1, liquidityAmount) {
@@ -120,7 +121,7 @@ async function main(token0, token1, liquidityAmount) {
     signer
   );
 
-  const price = encodePriceSqrt(1, 1); //默认设置初始比例为 1:1 是一般适用于没有明确市场价的代币对
+  const price = encodePriceSqrt(1, 1);
   let poolAddress = await factory.getPool(token0.id, token1.id, fee);
 
   //createAndInitializePoolIfNecessary中token0和token1需要先排序，否则报错Transaction rever ted without a reason string
@@ -149,40 +150,8 @@ async function main(token0, token1, liquidityAmount) {
 
   const poolData = await getPoolData(poolContract);
 
-  //fork的主网，所以chainId为1
-  const token0Obj = new Token(
-    1,
-    token0.id,
-    parseInt(token0.decimals),
-    token0.symbol,
-    token0.name
-  );
-  const token1Obj = new Token(
-    1,
-    token1.id,
-    parseInt(token1.decimals),
-    token1.symbol,
-    token1.name
-  );
-
-  const pool = new Pool(
-    token0Obj,
-    token1Obj,
-    poolData.fee,
-    poolData.sqrtPriceX96.toString(),
-    poolData.liquidity.toString(),
-    poolData.tick
-  );
-  const position = new Position({
-    pool: pool,
-    liquidity: ethers.utils.parseEther(liquidityAmount),
-    tickLower: nearestUsableTick(poolData.tick - range, poolData.tickSpacing),
-    tickUpper: nearestUsableTick(poolData.tick + range, poolData.tickSpacing),
-  });
-
-  let { amount0: amount0Desired, amount1: amount1Desired } =
-    position.mintAmounts;
-
+  // todo
+  
   amount0Desired = amount0Desired.toString();
   amount1Desired = amount1Desired.toString();
 
@@ -205,29 +174,6 @@ async function main(token0, token1, liquidityAmount) {
       token1.decimals
     )}`
   );
-
-  // 检查并处理 WETH 余额不足的情况
-  const checkAndDepositWETH = async (
-    token,
-    balance,
-    amountDesired,
-    tokenContract
-  ) => {
-    if (token.id.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
-      if (ethers.BigNumber.from(balance.toString()).lt(amountDesired)) {
-        console.log(`Insufficient ${token.symbol} balance, depositing...`);
-        const wethDepositAmount =
-          ethers.BigNumber.from(amountDesired).sub(balance);
-        const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, signer);
-        await wethContract.connect(signer).deposit({
-          value: wethDepositAmount.toString(),
-        });
-        console.log(`${token.symbol} deposited.`);
-        return await tokenContract.balanceOf(signer.address); // 返回更新后的余额
-      }
-    }
-    return balance; // 如果不需要存款，直接返回当前余额
-  };
 
   // 处理 token0 和 token1 的 WETH 存款逻辑
   balance0 = await checkAndDepositWETH(
@@ -256,8 +202,12 @@ async function main(token0, token1, liquidityAmount) {
     token0: token0.id,
     token1: token1.id,
     fee: poolData.fee,
- tickLower: nearestUsableTick(poolData.tick - range, poolData.tickSpacing),
-    tickUpper: nearestUsableTick(poolData.tick + range, poolData.tickSpacing),
+    tickLower:
+      nearestUsableTick(poolData.tick, poolData.tickSpacing) -
+      poolData.tickSpacing * 2,
+    tickUpper:
+      nearestUsableTick(poolData.tick, poolData.tickSpacing) +
+      poolData.tickSpacing * 2,
     amount0Desired: amount0Desired,
     amount1Desired: amount1Desired,
     amount0Min: 0,
@@ -298,6 +248,29 @@ async function main(token0, token1, liquidityAmount) {
   console.log(`Added liquidity: ${formattedAddedLiquidity}`);
 }
 
+// 检查并处理 WETH 余额不足的情况
+const checkAndDepositWETH = async (
+  token,
+  balance,
+  amountDesired,
+  tokenContract
+) => {
+  if (token.id.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
+    if (ethers.BigNumber.from(balance.toString()).lt(amountDesired)) {
+      console.log(`Insufficient ${token.symbol} balance, depositing...`);
+      const wethDepositAmount =
+        ethers.BigNumber.from(amountDesired).sub(balance);
+      const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, signer);
+      await wethContract.connect(signer).deposit({
+        value: wethDepositAmount.toString(),
+      });
+      console.log(`${token.symbol} deposited.`);
+      return await tokenContract.balanceOf(signer.address); // 返回更新后的余额
+    }
+  }
+  return balance; // 如果不需要存款，直接返回当前余额
+};
+
 async function getPoolData(poolContract) {
   const [tickSpacing, fee, liquidity, slot0] = await Promise.all([
     poolContract.tickSpacing(),
@@ -324,6 +297,30 @@ const encodePriceSqrt = (reserve1, reserve0) => {
       .integerValue(3)
       .toString()
   );
+};
+
+const getPrice = async (signer, inputAmount, token0, token1, fee) => {
+  const quoterContract = new ethers.Contract(
+    V3_SWAP_QUOTER_ADDRESS,
+    QuoterAbi.abi,
+    signer
+  );
+  // const immutables = await getPoolImmutables(poolContract);
+  const amountIn = ethers.utils.parseUnits(
+    inputAmount.toString(),
+    token0.decimals
+  );
+
+  const quotedAmountOut = await quoterContract.callStatic.quoteExactInputSingle(
+    token0.id,
+    token1.id,
+    fee,
+    amountIn,
+    0
+  );
+
+  const amountOut = ethers.utils.formatUnits(quotedAmountOut, token1.decimals);
+  return amountOut;
 };
 
 main(token0, token1, liquidityAmount)

@@ -139,7 +139,7 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
 
 async function main() {
   const tokenIn = tokenListMainnet[0]; // WETH
-  const amountInNum = "1000"; // 输入代币数量
+  const amountInNum = "10"; // 输入代币数量
   const fee = 3000; // 池的手续费等级（例如 0.3%）
   const slippage = 0.001; //默认情况下，Uniswap V3将滑点容忍度设置为0.1%
 
