@@ -51,7 +51,7 @@ const HeroSection = ({}) => {
 
   useEffect(() => {
     if (tokenData.length > 0) {
-      console.log("hero section tokenData:", tokenData);
+      // console.log("hero section tokenData:", tokenData);
       const firstToken = tokenData[1];
       const secondToken = tokenData[2];
 
@@ -116,22 +116,22 @@ const HeroSection = ({}) => {
       deadline,
       account
     );
-    console.log("data", data);
+    // console.log("data", data);
 
     setTokenSwapOutPut(Number(data[1]).toFixed(6));
     setSearch(false);
 
-    const poolData = await getPrice(
+    const outputAmount = await getPrice(
       inputAmount,
-      tokenOne.tokenAddress,
-      tokenTwo.tokenAddress,
+      tokenOne,
+      tokenTwo,
       3000
     ); // todo 传fee
-    console.log("poolData", poolData);
-    setOutPutAmount(poolData[0]);
-    const message = `${inputAmount} ${poolData[1]} = ${Number(
-      poolData[0]
-    ).toFixed(6)} ${poolData[2]}`;
+    console.log("outputAmount", outputAmount);
+    setOutPutAmount(outputAmount);
+    const message = `${inputAmount} ${tokenOne.symbol} = ${Number(
+      outputAmount
+    ).toFixed(6)} ${tokenTwo.symbol}`;
     console.log(message);
     setPoolMessage(message);
   };

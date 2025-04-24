@@ -22,6 +22,7 @@ export const SwapTokenContext = React.createContext();
 export const SwapTokenContextProvider = ({ children }) => {
   //USSTATE
   const [account, setAccount] = useState("");
+  const [signer, setSigner] = useState("");
   const [ether, setEther] = useState("");
   const [networkConnect, setNetworkConnect] = useState("");
 
@@ -29,6 +30,19 @@ export const SwapTokenContextProvider = ({ children }) => {
   const [getAllLiquidity, setGetAllLiquidity] = useState([]);
   //TOP TOKENS
   const [topTokensList, setTopTokensList] = useState([]);
+
+  // todo 获取不到signer
+  const fetchSinger = async () => {
+    try {
+      const web3modal = new Web3Modal();
+      const connection = await web3modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
+      const signer = provider.getSigner();
+      setSigner(signer);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   //FETCH DATA
   const fetchingData = async () => {
@@ -45,7 +59,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       const balance = await provider.getBalance(userAccount);
       const convertBal = BigNumber.from(balance).toString();
       const ethValue = ethers.utils.formatEther(convertBal);
-      console.log("ethValue", ethValue);
+      // console.log("ethValue", ethValue);
       setEther(ethValue);
 
       //GET NETWORK
@@ -54,7 +68,7 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       //ALL TOKEN BALANCE AND DATA
       const fetchedTokenData = [];
-      console.log("poolData", poolData);
+      // console.log("poolData", poolData);
       for (const el of poolData) {
         let convertTokenBal = "";
         if (el.symbol == "WETH") {
@@ -104,6 +118,7 @@ export const SwapTokenContextProvider = ({ children }) => {
   };
 
   useEffect(() => {
+    fetchSinger();
     fetchingData();
   }, []);
 
@@ -121,8 +136,6 @@ export const SwapTokenContextProvider = ({ children }) => {
       // "127.0.0.1:8545",
       ALCHEMY_URL
     );
-
-    console.log(tokenOne, "\n", tokenTwo);
 
     const tokenOneInit = new Token(
       chainId,
@@ -635,50 +648,47 @@ export const SwapTokenContextProvider = ({ children }) => {
     }
   };
 
-  const getPrice = async (inputAmount, tokenAddrss0, tokenAddrss1, fee) => {
+  const getPrice = async (inputAmount, token0, token1, fee) => {
     const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
 
-    // const tokenAbi0 = await getAbi(tokenAddrss0);
-    // const tokenAbi1 = await getAbi(tokenAddrss1);
-
-    const tokenContract0 = new ethers.Contract(
-      tokenAddrss0,
-      Erc20Abi.abi,
-      provider
+    // 确保 token0 的地址小于 token1 的地址
+    if (token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()) {
+      [token0, token1] = [token1, token0];
+    }
+    
+    console.log(
+      provider._isProvider,
+      inputAmount,
+      token0.decimals,
+      token1.decimals,
+      fee
     );
-    const tokenContract1 = new ethers.Contract(
-      tokenAddrss1,
-      Erc20Abi.abi,
-      provider
-    );
-
-    const tokenSymbol0 = await tokenContract0.symbol();
-    const tokenSymbol1 = await tokenContract1.symbol();
-    const tokenDecimals0 = await tokenContract0.decimals();
-    const tokenDecimals1 = await tokenContract1.decimals();
 
     const quoterContract = new ethers.Contract(
       V3_SWAP_QUOTER_ADDRESS,
       QuoterAbi.abi,
       provider
     );
-    // const immutables = await getPoolImmutables(poolContract);
+
     const amountIn = ethers.utils.parseUnits(
       inputAmount.toString(),
-      tokenDecimals0
+      token0.decimals
     );
 
     const quotedAmountOut =
       await quoterContract.callStatic.quoteExactInputSingle(
-        tokenAddrss0,
-        tokenAddrss1,
+        token0.tokenAddress,
+        token1.tokenAddress,
         fee,
         amountIn,
         0
       );
 
-    const amountOut = ethers.utils.formatUnits(quotedAmountOut, tokenDecimals1);
-    return [amountOut, tokenSymbol0, tokenSymbol1];
+    const amountOut = ethers.utils.formatUnits(
+      quotedAmountOut,
+      token1.decimals
+    );
+    return amountOut;
   };
 
   // quoterContract.callStatic.quoteExactInput方法获取价格报错
@@ -781,7 +791,6 @@ export const SwapTokenContextProvider = ({ children }) => {
   return (
     <SwapTokenContext.Provider
       value={{
-        fetchingData,
         singleSwapToken,
         connectWallet,
         getPrice,

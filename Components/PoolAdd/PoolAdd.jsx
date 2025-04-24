@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from "react";
 import Image from "next/image";
+import React, { useEffect, useState } from "react";
 
-//INTERNAL IMPORT
+// INTERNAL IMPORT
 import images from "../../assets";
+import { SearchToken, Token } from "../../Components/index.js";
 import Style from "./PoolAdd.module.css";
-import { Token, SearchToken } from "../../Components/index.js";
+
+import { SwapTokenContext } from "../../Context/SwapContext";
 
 const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
   const [openModel, setOpenModel] = useState(false);
@@ -15,15 +17,14 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(0);
 
-  //NEW STATE
-
+  // NEW STATE
   const [fee, setFee] = useState(0);
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
   const [tokenAmountOne, setTokenAmountOne] = useState(0);
   const [tokenAmountTwo, setTokenAmountTwo] = useState(0);
 
-  //TOKEN 1
+  // TOKEN 1
   const [tokenOne, setTokenOne] = useState({
     name: tokenData[0].name,
     image: images.etherlogo,
@@ -31,7 +32,8 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
     tokenBalance: tokenData[0].tokenBalance,
     tokenAddress: tokenData[0].tokenAddress,
   });
-  //TOKEN 2
+
+  // TOKEN 2
   const [tokenTwo, setTokenTwo] = useState({
     name: tokenData[2].name,
     image: images.etherlogo,
@@ -39,6 +41,12 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
     tokenBalance: tokenData[2].tokenBalance,
     tokenAddress: tokenData[2].tokenAddress,
   });
+  const {
+    singleSwapToken,
+    connectWallet,
+    account,
+    getPrice,
+  } = useContext(SwapTokenContext);
 
   const feePairs = [
     {
@@ -61,6 +69,41 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
     },
   ];
 
+  // Effect to calculate the other token amount when one token amount changes
+  useEffect(() => {
+    const calculateOtherTokenAmount = async () => {
+      if (
+        tokenAmountOne > 0 &&
+        tokenOne.tokenAddress &&
+        tokenTwo.tokenAddress &&
+        fee
+      ) {
+        const amountOut = await getPrice(
+          tokenAmountOne,
+          tokenOne.tokenAddress,
+          tokenTwo.tokenAddress,
+          fee
+        );
+        setTokenAmountTwo(amountOut);
+      } else if (
+        tokenAmountTwo > 0 &&
+        tokenOne.tokenAddress &&
+        tokenTwo.tokenAddress &&
+        fee
+      ) {
+        const amountOut = await getPrice(
+          tokenAmountTwo,
+          tokenTwo.tokenAddress,
+          tokenOne.tokenAddress,
+          fee
+        );
+        setTokenAmountOne(amountOut);
+      }
+    };
+
+    calculateOtherTokenAmount();
+  }, [tokenAmountOne, tokenAmountTwo, tokenOne, tokenTwo, fee]);
+
   return (
     <div className={Style.PoolAdd}>
       <div className={Style.PoolAdd_box}>
@@ -75,7 +118,7 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             />
           </div>
           <div className={Style.PoolAdd_box_header_middle}>
-            <p>Add Liqudity</p>
+            <p>Add Liquidity</p>
           </div>
           <div className={Style.PoolAdd_box_header_right}>
             <p>
@@ -133,7 +176,7 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             {/* //FEE */}
             <div className={Style.PoolAdd_box_price_left_fee}>
               <div className={Style.PoolAdd_box_price_left_fee_left}>
-                <h4>Fee teir</h4>
+                <h4>Fee tier</h4>
                 <p>The % you will earn in fees</p>
               </div>
               {openFee ? (
@@ -263,21 +306,6 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
             <div className={Style.PoolAdd_box_price_right_amount}>
               <button
                 onClick={() => {
-                  // console.log(
-                  //   "tokenAddress0:",
-                  //   tokenOne.tokenAddress.tokenAddress
-                  // );
-                  // console.log(
-                  //   "tokenAddress1:",
-                  //   tokenTwo.tokenAddress.tokenAddress
-                  // );
-                  // console.log("fee:", fee);
-                  // console.log("tokenPrice1 (minPrice):", minPrice);
-                  // console.log("tokenPrice2 (maxPrice):", maxPrice);
-                  // console.log("slippage:", slippage);
-                  // console.log("deadline:", deadline);
-                  // console.log("tokenAmountOne:", tokenAmountOne);
-                  // console.log("tokenAmountTwo:", tokenAmountTwo);
                   createLiquidityAndPool({
                     tokenOne: tokenOne,
                     tokenTwo: tokenTwo,
@@ -286,8 +314,8 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
                     tokenPrice2: maxPrice,
                     slippage: slippage,
                     deadline: deadline,
-                    tokenAmmountOne: tokenAmountOne,
-                    tokenAmmountTwo: tokenAmountTwo,
+                    tokenAmountOne: tokenAmountOne,
+                    tokenAmountTwo: tokenAmountTwo,
                   });
                 }}
               >
