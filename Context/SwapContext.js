@@ -1,4 +1,5 @@
 import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core";
+import { nearestUsableTick, Pool, Position } from "@uniswap/v3-sdk";
 import { AlphaRouter } from "@uniswap/smart-order-router";
 import Erc20Abi from "@uniswap/v2-core/build/IERC20.json";
 import QuoterAbi from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json";
@@ -93,7 +94,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         }
       }
       setTokenData(fetchedTokenData);
-      // console.log("tokenData", tokenData);
+      console.log("tokenData", tokenData);
 
       // //GET LIQUDITY
       // const userStorageData = await connectingWithUserStorageContract();
@@ -207,24 +208,24 @@ export const SwapTokenContextProvider = ({ children }) => {
 
   //CREATE AND ADD LIQUIDITY todo
   const createLiquidityAndPool = async ({
-    tokenOne,
-    tokenTwo,
+    token0,
+    token1,
     fee,
-    tokenPrice1,
-    tokenPrice2,
+    amount0Desired,
+    amount1Desired,
     slippage,
     deadline,
-    tokenAmmountOne,
-    tokenAmmountTwo,
+    amount0Min = 0,
+    amount1Min = 0,
   }) => {
     try {
-      tokenOne.tokenAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
-      tokenTwo.tokenAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      fee = 3000; //0.3%
-      tokenPrice1 = 10;
-      tokenPrice2 = 1000;
-      tokenAmmountOne = 1000;
-      tokenAmmountTwo = 100;
+      // token0.tokenAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
+      // token1.tokenAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
+      // fee = 3000; //0.3%
+      // amount0Desired = 10;
+      // amount1Desired = 1000;
+      // amount0Min = 1000;
+      // amount1Min = 100;
 
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
@@ -237,15 +238,15 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 动态选择 ABI
       const token0Contract = new Contract(
-        tokenOne.tokenAddress,
-        tokenOne.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
+        token0.tokenAddress,
+        token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
           ? WETH_ABI
           : Erc20Abi,
         signer
       );
       const token1Contract = new Contract(
-        tokenTwo.tokenAddress,
-        tokenTwo.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
+        token1.tokenAddress,
+        token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
           ? WETH_ABI
           : Erc20Abi,
         signer
@@ -255,12 +256,12 @@ export const SwapTokenContextProvider = ({ children }) => {
       let balance1 = await token1Contract.balanceOf(signer.address);
 
       console.log(
-        `Balance of ${tokenOne.symbol}:`,
-        ethers.utils.formatUnits(balance0.toString(), tokenOne.decimals)
+        `Balance of ${token0.symbol}:`,
+        ethers.utils.formatUnits(balance0.toString(), token0.decimals)
       );
       console.log(
-        `Balance of ${tokenTwo.symbol}:`,
-        ethers.utils.formatUnits(balance1.toString(), tokenTwo.decimals)
+        `Balance of ${token1.symbol}:`,
+        ethers.utils.formatUnits(balance1.toString(), token1.decimals)
       );
 
       const allowance0 = await token0Contract.allowance(
@@ -311,8 +312,8 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       const price = encodePriceSqrt(1, 1);
       let poolAddress = await factory.getPool(
-        tokenOne.tokenAddress,
-        tokenTwo.tokenAddress,
+        token0.tokenAddress,
+        token1.tokenAddress,
         fee
       );
 
@@ -321,8 +322,8 @@ export const SwapTokenContextProvider = ({ children }) => {
         const transaction = await nonfungiblePositionManager
           .connect(signer)
           .createAndInitializePoolIfNecessary(
-            tokenOne.tokenAddress,
-            tokenTwo.tokenAddress,
+            token0.tokenAddress,
+            token1.tokenAddress,
             fee,
             price,
             {
@@ -332,7 +333,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         await transaction.wait();
         poolAddress = await factory
           .connect(signer)
-          .getPool(tokenOne.tokenAddress, tokenTwo.tokenAddress, fee);
+          .getPool(token0.tokenAddress, token1.tokenAddress, fee);
         console.log("Pool is created");
       } else {
         console.log("Pool already exists");
@@ -346,22 +347,66 @@ export const SwapTokenContextProvider = ({ children }) => {
         signer
       );
 
-      const poolData = await getPoolData(poolContract);
+      console.log(
+        `${token0.symbol} Required: ${amount0Desired}, 
+            Available: ${ethers.utils.formatUnits(
+              balance0.toString(),
+              token0.decimals
+            )}`
+      );
+
+      console.log(
+        `${token1.symbol} Required: ${amount1Desired}, 
+            Available: ${ethers.utils.formatUnits(
+              balance1.toString(),
+              token1.decimals
+            )}`
+      );
+
+      amount0Desired = ethers.utils
+        .parseUnits(amount0Desired, token0.decimals)
+        .toString();
+      amount1Desired = ethers.utils
+        .parseUnits(amount1Desired, token1.decimals)
+        .toString();
+
+      // 处理 token0 和 token1 的 WETH 存款逻辑
+      balance0 = await checkAndDepositWETH(
+        token0,
+        balance0,
+        amount0Desired,
+        token0Contract
+      );
+      balance1 = await checkAndDepositWETH(
+        token1,
+        balance1,
+        amount1Desired,
+        token1Contract
+      );
+
+      // 检查余额是否仍然不足
+      if (ethers.BigNumber.from(balance0.toString()).lt(amount0Desired)) {
+        throw new Error(`Insufficient ${token0.symbol} balance`);
+      }
+
+      if (ethers.BigNumber.from(balance1.toString()).lt(amount1Desired)) {
+        throw new Error(`Insufficient ${token1.symbol} balance`);
+      }
 
       //fork的主网，所以chainId为1
       const token0Obj = new Token(
         1,
-        tokenOne.tokenAddress,
-        parseInt(tokenOne.decimals),
-        tokenOne.symbol,
-        tokenOne.name
+        token0.tokenAddress,
+        parseInt(token0.decimals),
+        token0.symbol,
+        token0.name
       );
       const token1Obj = new Token(
         1,
-        tokenTwo.tokenAddress,
-        parseInt(tokenTwo.decimals),
-        tokenTwo.symbol,
-        tokenTwo.name
+        token1.tokenAddress,
+        parseInt(token1.decimals),
+        token1.symbol,
+        token1.name
       );
 
       const pool = new Pool(
@@ -393,22 +438,22 @@ export const SwapTokenContextProvider = ({ children }) => {
       amount1Desired = amount1Desired.toString();
 
       console.log(
-        `${tokenOne.symbol} Required: ${ethers.utils.formatUnits(
+        `${token0.symbol} Required: ${ethers.utils.formatUnits(
           amount0Desired,
-          tokenOne.decimals
+          token0.decimals
         )}, Available: ${ethers.utils.formatUnits(
           balance0.toString(),
-          tokenOne.decimals
+          token0.decimals
         )}`
       );
 
       console.log(
-        `${tokenTwo.symbol} Required: ${ethers.utils.formatUnits(
+        `${token1.symbol} Required: ${ethers.utils.formatUnits(
           amount1Desired,
-          tokenTwo.decimals
+          token1.decimals
         )}, Available: ${ethers.utils.formatUnits(
           balance1.toString(),
-          tokenTwo.decimals
+          token1.decimals
         )}`
       );
 
@@ -451,16 +496,17 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 检查余额是否仍然不足
       if (ethers.BigNumber.from(balance0.toString()).lt(amount0Desired)) {
-        throw new Error(`Insufficient ${tokenOne.symbol} balance`);
+        throw new Error(`Insufficient ${token0.symbol} balance`);
       }
 
       if (ethers.BigNumber.from(balance1.toString()).lt(amount1Desired)) {
-        throw new Error(`Insufficient ${tokenTwo.symbol} balance`);
+        throw new Error(`Insufficient ${token1.symbol} balance`);
       }
 
+      const poolData = await getPoolData(poolContract);
       const params = {
-        token0: tokenOne.tokenAddress,
-        token1: tokenTwo.tokenAddress,
+        token0: token0.id,
+        token1: token1.id,
         fee: poolData.fee,
         tickLower:
           nearestUsableTick(poolData.tick, poolData.tickSpacing) -
@@ -468,10 +514,10 @@ export const SwapTokenContextProvider = ({ children }) => {
         tickUpper:
           nearestUsableTick(poolData.tick, poolData.tickSpacing) +
           poolData.tickSpacing * 2,
-        amount0Desired: amount0Desired,
-        amount1Desired: amount1Desired,
-        amount0Min: 0,
-        amount1Min: 0,
+        amount0Desired,
+        amount1Desired,
+        amount0Min,
+        amount1Min,
         recipient: signer.address,
         deadline: Math.floor(Date.now() / 1000) + 60 * 10,
       };
@@ -655,7 +701,7 @@ export const SwapTokenContextProvider = ({ children }) => {
     if (token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()) {
       [token0, token1] = [token1, token0];
     }
-    
+
     console.log(
       provider._isProvider,
       inputAmount,

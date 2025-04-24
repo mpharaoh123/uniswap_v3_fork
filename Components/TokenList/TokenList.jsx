@@ -13,7 +13,7 @@ const TokenList = ({ tokenDate, setOpenTokenBox }) => {
   } */
 
   useEffect(() => {
-    console.log("tokenlist Token Data:", tokenDate);
+    // console.log("tokenlist Token Data:", tokenDate);
   }, [tokenDate]);
 
   return (

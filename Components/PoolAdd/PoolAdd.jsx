@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 // INTERNAL IMPORT
 import images from "../../assets";
@@ -8,7 +8,7 @@ import Style from "./PoolAdd.module.css";
 
 import { SwapTokenContext } from "../../Context/SwapContext";
 
-const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
+const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const [openModel, setOpenModel] = useState(false);
   const [openTokenModelOne, setOpenTokenModelOne] = useState(false);
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
@@ -24,29 +24,56 @@ const PoolAdd = ({ setClosePool, tokenData, createLiquidityAndPool }) => {
   const [tokenAmountOne, setTokenAmountOne] = useState(0);
   const [tokenAmountTwo, setTokenAmountTwo] = useState(0);
 
-  // TOKEN 1
-  const [tokenOne, setTokenOne] = useState({
-    name: tokenData[0].name,
-    image: images.etherlogo,
-    symbol: tokenData[0].symbol,
-    tokenBalance: tokenData[0].tokenBalance,
-    tokenAddress: tokenData[0].tokenAddress,
-  });
-
-  // TOKEN 2
-  const [tokenTwo, setTokenTwo] = useState({
-    name: tokenData[2].name,
-    image: images.etherlogo,
-    symbol: tokenData[2].symbol,
-    tokenBalance: tokenData[2].tokenBalance,
-    tokenAddress: tokenData[2].tokenAddress,
-  });
   const {
-    singleSwapToken,
-    connectWallet,
-    account,
+    tokenData,
     getPrice,
   } = useContext(SwapTokenContext);
+
+const [tokenOne, setTokenOne] = useState({
+    name: "",
+    image: "",
+    symbol: "",
+    tokenBalance: "",
+    tokenAddress: "",
+    decimals: "",
+  });
+
+  const [tokenTwo, setTokenTwo] = useState({
+    name: "",
+    image: "",
+    symbol: "",
+    tokenBalance: "",
+    tokenAddress: "",
+    decimals: "",
+  });
+
+  useEffect(() => {
+    if (tokenData.length > 0) {
+      // console.log("hero section tokenData:", tokenData);
+      const firstToken = tokenData[1];
+      const secondToken = tokenData[2];
+
+      setTokenOne({
+        name: firstToken.name,
+        image: "",
+        symbol: firstToken.symbol,
+        tokenBalance: firstToken.tokenBalance,
+        tokenAddress: firstToken.tokenAddress,
+        decimals: firstToken.decimals,
+      });
+      setTokenTwo({
+        name: secondToken.name,
+        image: "",
+        symbol: secondToken.symbol,
+        tokenBalance: secondToken.tokenBalance,
+        tokenAddress: secondToken.tokenAddress,
+        decimals: secondToken.decimals,
+      });
+    }
+    console.log(111, tokenOne);
+    console.log(222, tokenTwo);
+    
+  }, [tokenData]);
 
   const feePairs = [
     {
