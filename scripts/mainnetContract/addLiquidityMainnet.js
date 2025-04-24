@@ -229,6 +229,9 @@ async function main(token0, token1, liquidityAmount) {
     return balance; // 如果不需要存款，直接返回当前余额
   };
 
+  console.log("amount0Desired", amount0Desired, typeof amount0Desired);
+  console.log("amount1Desired", amount1Desired, typeof amount1Desired);
+
   // 处理 token0 和 token1 的 WETH 存款逻辑
   balance0 = await checkAndDepositWETH(
     token0,

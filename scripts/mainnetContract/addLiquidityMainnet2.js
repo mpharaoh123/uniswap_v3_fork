@@ -30,7 +30,7 @@ bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 const token0 = tokenListMainnet[1]; //0为weth
 const token1 = tokenListMainnet[2];
 const fee = 500; //取值 0.01%:100 0.05%:500 0.3%:3000 1%:10000
-const amount0Desired = ethers.utils.parseUnits("1", token0.decimals);
+const amount0Desired = "100";
 
 async function main(token0, token1, amount0Desired) {
   const [signer] = await ethers.getSigners();
@@ -147,7 +147,7 @@ async function main(token0, token1, amount0Desired) {
     signer
   );
 
-  const amount1Desired = await getPrice(
+  let amount1Desired = await getPrice(
     signer,
     amount0Desired,
     token0,
@@ -156,24 +156,27 @@ async function main(token0, token1, amount0Desired) {
   );
 
   console.log(
-    `${token0.symbol} Required: ${ethers.utils.formatUnits(
-      amount0Desired,
-      token0.decimals
-    )}, Available: ${ethers.utils.formatUnits(
-      balance0.toString(),
-      token0.decimals
-    )}`
+    `${token0.symbol} Required: ${amount0Desired}, 
+      Available: ${ethers.utils.formatUnits(
+        balance0.toString(),
+        token0.decimals
+      )}`
   );
 
   console.log(
-    `${token1.symbol} Required: ${ethers.utils.formatUnits(
-      amount1Desired,
-      token1.decimals
-    )}, Available: ${ethers.utils.formatUnits(
-      balance1.toString(),
-      token1.decimals
-    )}`
+    `${token1.symbol} Required: ${amount1Desired}, 
+      Available: ${ethers.utils.formatUnits(
+        balance1.toString(),
+        token1.decimals
+      )}`
   );
+
+  amount0Desired = ethers.utils
+    .parseUnits(amount0Desired, token0.decimals)
+    .toString();
+  amount1Desired = ethers.utils
+    .parseUnits(amount1Desired, token1.decimals)
+    .toString();
 
   // 处理 token0 和 token1 的 WETH 存款逻辑
   balance0 = await checkAndDepositWETH(
@@ -307,7 +310,7 @@ const getPrice = async (signer, inputAmount, token0, token1, fee) => {
       artifacts.QuoterAbi.abi,
       signer
     );
-    // const immutables = await getPoolImmutables(poolContract);
+
     const amountIn = ethers.utils.parseUnits(
       inputAmount.toString(),
       token0.decimals
@@ -321,7 +324,12 @@ const getPrice = async (signer, inputAmount, token0, token1, fee) => {
         amountIn,
         0
       );
-    return ethers.BigNumber.from(quotedAmountOut);
+    const amountOut = ethers.utils.formatUnits(
+      quotedAmountOut,
+      token1.decimals
+    );
+    console.log("amountOut", amountOut);
+    return amountOut;
   } catch (error) {
     console.error("Error calling getPrice:", error);
     throw error;
