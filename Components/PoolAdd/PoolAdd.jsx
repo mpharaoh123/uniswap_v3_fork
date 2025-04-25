@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 
 // INTERNAL IMPORT
 import images from "../../assets";
@@ -18,18 +18,17 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const [maxPrice, setMaxPrice] = useState(0);
 
   // NEW STATE
-  const [fee, setFee] = useState(0);
+  const [fee, setFee] = useState(500);
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
   const [tokenAmountOne, setTokenAmountOne] = useState(0);
   const [tokenAmountTwo, setTokenAmountTwo] = useState(0);
+  const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
+  const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
 
-  const {
-    tokenData,
-    getPrice,
-  } = useContext(SwapTokenContext);
+  const { tokenData, getPrice } = useContext(SwapTokenContext);
 
-const [tokenOne, setTokenOne] = useState({
+  const [tokenOne, setTokenOne] = useState({
     name: "",
     image: "",
     symbol: "",
@@ -47,7 +46,30 @@ const [tokenOne, setTokenOne] = useState({
     decimals: "",
   });
 
+  const feePairs = [
+    {
+      fee: "0.05%",
+      number: "0% Select",
+      feeSystem: 500,
+    },
+    {
+      fee: "0.3%",
+      number: "0% Select",
+      feeSystem: 3000,
+    },
+    {
+      fee: "1%",
+      number: "0% Select",
+      feeSystem: 10000,
+    },
+  ];
+
   useEffect(() => {
+    console.log("TokenAmountTwo updated:", tokenAmountTwo);
+  }, [tokenAmountTwo]);
+
+  useEffect(() => {
+    console.log("tokenData", tokenData);
     if (tokenData.length > 0) {
       // console.log("hero section tokenData:", tokenData);
       const firstToken = tokenData[1];
@@ -70,31 +92,9 @@ const [tokenOne, setTokenOne] = useState({
         decimals: secondToken.decimals,
       });
     }
-    console.log(111, tokenOne);
-    console.log(222, tokenTwo);
-    
+    // console.log(111, tokenOne);
+    // console.log(222, tokenTwo);
   }, [tokenData]);
-
-  const feePairs = [
-    {
-      fee: "0.05%",
-      info: "Best for stable pairs",
-      number: "0% Select",
-      feeSystem: 500,
-    },
-    {
-      fee: "0.3%",
-      info: "Best for stable pairs",
-      number: "0% Select",
-      feeSystem: 3000,
-    },
-    {
-      fee: "1%",
-      info: "Best for stable pairs",
-      number: "0% Select",
-      feeSystem: 10000,
-    },
-  ];
 
   // Effect to calculate the other token amount when one token amount changes
   useEffect(() => {
@@ -107,8 +107,8 @@ const [tokenOne, setTokenOne] = useState({
       ) {
         const amountOut = await getPrice(
           tokenAmountOne,
-          tokenOne.tokenAddress,
-          tokenTwo.tokenAddress,
+          tokenOne,
+          tokenTwo,
           fee
         );
         setTokenAmountTwo(amountOut);
@@ -120,8 +120,8 @@ const [tokenOne, setTokenOne] = useState({
       ) {
         const amountOut = await getPrice(
           tokenAmountTwo,
-          tokenTwo.tokenAddress,
-          tokenOne.tokenAddress,
+          tokenTwo,
+          tokenOne,
           fee
         );
         setTokenAmountOne(amountOut);
@@ -239,8 +239,6 @@ const [tokenOne, setTokenOne] = useState({
                         )}
                       </p>
                     </div>
-
-                    <small>{el.info}</small>
                     <p className={Style.PoolAdd_box_price_left_list_item_para}>
                       {el.number}
                     </p>
@@ -252,12 +250,31 @@ const [tokenOne, setTokenOne] = useState({
             {/* //DEPOSIT AMOUNT */}
             <div className={Style.PoolAdd_box_deposit}>
               <h4>Deposit Amount</h4>
-
               <div className={Style.PoolAdd_box_deposit_box}>
                 <input
                   type="number"
                   placeholder={tokenOne.tokenBalance.slice(0, 9)}
-                  onChange={(e) => setTokenAmountOne(e.target.value)}
+                  value={tokenAmountOne}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setTokenAmountOne(value);
+                    // 清除之前的定时器
+                    clearTimeout(tokenOneTimeoutRef.current);
+                    // 设置新的定时器
+                    tokenOneTimeoutRef.current = setTimeout(async () => {
+                      console.log(333, value, tokenTwo.tokenAddress, fee);
+                      if (value > 0 && tokenTwo.tokenAddress && fee > 0) {
+                        const amountOut = await getPrice(
+                          value,
+                          tokenOne,
+                          tokenTwo,
+                          fee
+                        );
+                        console.log("amountOut", amountOut);
+                        setTokenAmountTwo(amountOut);
+                      }
+                    }, 1000); // 延迟1秒
+                  }}
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
@@ -271,7 +288,26 @@ const [tokenOne, setTokenOne] = useState({
                 <input
                   type="number"
                   placeholder={tokenTwo.tokenBalance.slice(0, 9)}
-                  onChange={(e) => setTokenAmountTwo(e.target.value)}
+                  value={tokenAmountTwo}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setTokenAmountTwo(value);
+                    // 清除之前的定时器
+                    clearTimeout(tokenTwoTimeoutRef.current);
+                    // 设置新的定时器
+                    tokenTwoTimeoutRef.current = setTimeout(async () => {
+                      if (value > 0 && tokenOne.tokenAddress && fee > 0) {
+                        const amountOut = await getPrice(
+                          value,
+                          tokenTwo,
+                          tokenOne,
+                          fee
+                        );
+                        console.log("amountOut", amountOut);
+                        setTokenAmountOne(amountOut);
+                      }
+                    }, 1000); // 延迟1秒
+                  }}
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>

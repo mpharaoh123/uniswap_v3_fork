@@ -1,8 +1,6 @@
-import React, { useState, useEffect, useContext } from "react";
-import Image from "next/image";
+import React, { useContext, useState } from "react";
 
 //INTERNAL IMPORT
-import images from "../assets";
 import Style from "../styles/Pools.module.css";
 
 import { PoolAdd, PoolConnect } from "../Components/index";
@@ -12,11 +10,7 @@ const Pool = () => {
   const { account, createLiquidityAndPool, tokenData, getAllLiquidity } =
     useContext(SwapTokenContext);
 
-  const [closePool, setClosePool] = useState(false);
-
-  useEffect(() => {
-    console.log("closePool value:", closePool);
-  }, [closePool]);
+  const [closePool, setClosePool] = useState(true); //todo false
 
   return (
     <div className={Style.Pool}>

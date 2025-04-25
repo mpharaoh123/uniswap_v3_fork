@@ -1,9 +1,9 @@
 import { CurrencyAmount, Percent, Token, TradeType } from "@uniswap/sdk-core";
-import { nearestUsableTick, Pool, Position } from "@uniswap/v3-sdk";
 import { AlphaRouter } from "@uniswap/smart-order-router";
 import Erc20Abi from "@uniswap/v2-core/build/IERC20.json";
 import QuoterAbi from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json";
 import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
+import { nearestUsableTick, Pool, Position } from "@uniswap/v3-sdk";
 import axios from "axios";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
@@ -695,20 +695,20 @@ export const SwapTokenContextProvider = ({ children }) => {
   };
 
   const getPrice = async (inputAmount, token0, token1, fee) => {
-    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
+    if (
+      !inputAmount ||
+      !token0.tokenAddress ||
+      !token1.tokenAddress ||
+      fee <= 0
+    ) {
+      return;
+    }
 
+    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
     // 确保 token0 的地址小于 token1 的地址
     if (token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()) {
       [token0, token1] = [token1, token0];
     }
-
-    console.log(
-      provider._isProvider,
-      inputAmount,
-      token0.decimals,
-      token1.decimals,
-      fee
-    );
 
     const quoterContract = new ethers.Contract(
       V3_SWAP_QUOTER_ADDRESS,
