@@ -3,7 +3,12 @@ import { AlphaRouter } from "@uniswap/smart-order-router";
 import Erc20Abi from "@uniswap/v2-core/build/IERC20.json";
 import QuoterAbi from "@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json";
 import SwapRouter from "@uniswap/v3-periphery/artifacts/contracts/SwapRouter.sol/SwapRouter.json";
-import { nearestUsableTick, Pool, Position } from "@uniswap/v3-sdk";
+
+import UniswapV3Factory from "@uniswap/v3-core/artifacts/contracts/UniswapV3Factory.sol/UniswapV3Factory.json";
+import UniswapV3Pool from "@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json";
+import NonfungiblePositionManager from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
+
+import { nearestUsableTick } from "@uniswap/v3-sdk";
 import axios from "axios";
 import { BigNumber, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
@@ -12,10 +17,12 @@ import Web3Modal from "web3modal";
 import {
   ALCHEMY_URL,
   ETHERSCAN_API_KEY,
+  NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
   poolData,
   V3_SWAP_QUOTER_ADDRESS,
   V3_SWAP_ROUTER_ADDRESS,
   WETH_ABI,
+  WETH_ADDRESS,
 } from "./constants";
 
 export const SwapTokenContext = React.createContext();
@@ -204,357 +211,6 @@ export const SwapTokenContextProvider = ({ children }) => {
 
     console.log(quoteAmountOut, ratio);
     return [transaction, quoteAmountOut, ratio];
-  };
-
-  //CREATE AND ADD LIQUIDITY todo
-  const createLiquidityAndPool = async ({
-    token0,
-    token1,
-    fee,
-    amount0Desired,
-    amount1Desired,
-    slippage,
-    deadline,
-    amount0Min = 0,
-    amount1Min = 0,
-  }) => {
-    try {
-      // token0.tokenAddress = "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2";
-      // token1.tokenAddress = "0xdac17f958d2ee523a2206206994597c13d831ec7";
-      // fee = 3000; //0.3%
-      // amount0Desired = 10;
-      // amount1Desired = 1000;
-      // amount0Min = 1000;
-      // amount1Min = 100;
-
-      const web3modal = new Web3Modal();
-      const connection = await web3modal.connect();
-      const provider = new ethers.providers.Web3Provider(connection);
-      const signer = provider.getSigner();
-
-      if (tokenAddress1.toLowerCase() < tokenAddress0.toLowerCase()) {
-        [tokenAddress0, tokenAddress1] = [tokenAddress1, tokenAddress0];
-      }
-
-      // 动态选择 ABI
-      const token0Contract = new Contract(
-        token0.tokenAddress,
-        token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
-          ? WETH_ABI
-          : Erc20Abi,
-        signer
-      );
-      const token1Contract = new Contract(
-        token1.tokenAddress,
-        token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
-          ? WETH_ABI
-          : Erc20Abi,
-        signer
-      );
-
-      let balance0 = await token0Contract.balanceOf(signer.address);
-      let balance1 = await token1Contract.balanceOf(signer.address);
-
-      console.log(
-        `Balance of ${token0.symbol}:`,
-        ethers.utils.formatUnits(balance0.toString(), token0.decimals)
-      );
-      console.log(
-        `Balance of ${token1.symbol}:`,
-        ethers.utils.formatUnits(balance1.toString(), token1.decimals)
-      );
-
-      const allowance0 = await token0Contract.allowance(
-        signer.address,
-        NON_FUNGABLE_POSITION_MANAGER_ADDRESS
-      );
-      const allowance1 = await token1Contract.allowance(
-        signer.address,
-        NON_FUNGABLE_POSITION_MANAGER_ADDRESS
-      );
-
-      if (allowance0.lt(ethers.constants.MaxUint256)) {
-        console.log("Approving tokenOne...");
-        await token0Contract
-          .connect(signer)
-          .approve(
-            NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
-            ethers.constants.MaxUint256
-          );
-        console.log("Token0 approved.");
-      }
-
-      if (allowance1.lt(ethers.constants.MaxUint256)) {
-        console.log("Approving tokenTwo...");
-        await token1Contract
-          .connect(signer)
-          .approve(
-            NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
-            ethers.constants.MaxUint256
-          );
-        console.log("Token1 approved.");
-      }
-
-      const nonfungiblePositionManager = new Contract(
-        NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
-        artifacts.NonfungiblePositionManager.abi,
-        signer
-      );
-
-      // console.log(`Token0 allowance: ${ethers.utils.formatUnits(allowance0, tokenOne.decimals)}`);
-      // console.log(`Token1 allowance: ${ethers.utils.formatUnits(allowance1, tokenTwo.decimals)}`);
-
-      const factory = new Contract(
-        FACTORY_ADDRESS,
-        artifacts.UniswapV3Factory.abi,
-        signer
-      );
-
-      const price = encodePriceSqrt(1, 1);
-      let poolAddress = await factory.getPool(
-        token0.tokenAddress,
-        token1.tokenAddress,
-        fee
-      );
-
-      //createAndInitializePoolIfNecessary中token0和token1需要先排序，否则报错Transaction rever ted without a reason string
-      if (poolAddress === ethers.constants.AddressZero) {
-        const transaction = await nonfungiblePositionManager
-          .connect(signer)
-          .createAndInitializePoolIfNecessary(
-            token0.tokenAddress,
-            token1.tokenAddress,
-            fee,
-            price,
-            {
-              gasLimit: 5000000,
-            }
-          );
-        await transaction.wait();
-        poolAddress = await factory
-          .connect(signer)
-          .getPool(token0.tokenAddress, token1.tokenAddress, fee);
-        console.log("Pool is created");
-      } else {
-        console.log("Pool already exists");
-      }
-      console.log(`poolAddress: ${poolAddress}`);
-
-      // 获取池数据
-      const poolContract = new Contract(
-        poolAddress,
-        artifacts.UniswapV3Pool.abi,
-        signer
-      );
-
-      console.log(
-        `${token0.symbol} Required: ${amount0Desired}, 
-            Available: ${ethers.utils.formatUnits(
-              balance0.toString(),
-              token0.decimals
-            )}`
-      );
-
-      console.log(
-        `${token1.symbol} Required: ${amount1Desired}, 
-            Available: ${ethers.utils.formatUnits(
-              balance1.toString(),
-              token1.decimals
-            )}`
-      );
-
-      amount0Desired = ethers.utils
-        .parseUnits(amount0Desired, token0.decimals)
-        .toString();
-      amount1Desired = ethers.utils
-        .parseUnits(amount1Desired, token1.decimals)
-        .toString();
-
-      // 处理 token0 和 token1 的 WETH 存款逻辑
-      balance0 = await checkAndDepositWETH(
-        token0,
-        balance0,
-        amount0Desired,
-        token0Contract
-      );
-      balance1 = await checkAndDepositWETH(
-        token1,
-        balance1,
-        amount1Desired,
-        token1Contract
-      );
-
-      // 检查余额是否仍然不足
-      if (ethers.BigNumber.from(balance0.toString()).lt(amount0Desired)) {
-        throw new Error(`Insufficient ${token0.symbol} balance`);
-      }
-
-      if (ethers.BigNumber.from(balance1.toString()).lt(amount1Desired)) {
-        throw new Error(`Insufficient ${token1.symbol} balance`);
-      }
-
-      //fork的主网，所以chainId为1
-      const token0Obj = new Token(
-        1,
-        token0.tokenAddress,
-        parseInt(token0.decimals),
-        token0.symbol,
-        token0.name
-      );
-      const token1Obj = new Token(
-        1,
-        token1.tokenAddress,
-        parseInt(token1.decimals),
-        token1.symbol,
-        token1.name
-      );
-
-      const pool = new Pool(
-        token0Obj,
-        token1Obj,
-        poolData.fee,
-        poolData.sqrtPriceX96.toString(),
-        poolData.liquidity.toString(),
-        poolData.tick
-      );
-      const range = 10; // 设置价格范围为当前价格上下 range 个 tick，数值越大，覆盖的流动性范围越大，需要的代币越多
-      const position = new Position({
-        pool: pool,
-        liquidity: ethers.utils.parseEther(liquidityAmount),
-        tickLower: nearestUsableTick(
-          poolData.tick - range,
-          poolData.tickSpacing
-        ),
-        tickUpper: nearestUsableTick(
-          poolData.tick + range,
-          poolData.tickSpacing
-        ),
-      });
-
-      let { amount0: amount0Desired, amount1: amount1Desired } =
-        position.mintAmounts;
-
-      amount0Desired = amount0Desired.toString();
-      amount1Desired = amount1Desired.toString();
-
-      console.log(
-        `${token0.symbol} Required: ${ethers.utils.formatUnits(
-          amount0Desired,
-          token0.decimals
-        )}, Available: ${ethers.utils.formatUnits(
-          balance0.toString(),
-          token0.decimals
-        )}`
-      );
-
-      console.log(
-        `${token1.symbol} Required: ${ethers.utils.formatUnits(
-          amount1Desired,
-          token1.decimals
-        )}, Available: ${ethers.utils.formatUnits(
-          balance1.toString(),
-          token1.decimals
-        )}`
-      );
-
-      // 检查并处理 WETH 余额不足的情况
-      const checkAndDepositWETH = async (
-        token,
-        balance,
-        amountDesired,
-        tokenContract
-      ) => {
-        if (token.id.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
-          if (ethers.BigNumber.from(balance.toString()).lt(amountDesired)) {
-            console.log(`Insufficient ${token.symbol} balance, depositing...`);
-            const wethDepositAmount =
-              ethers.BigNumber.from(amountDesired).sub(balance);
-            const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, signer);
-            await wethContract.connect(signer).deposit({
-              value: wethDepositAmount.toString(),
-            });
-            console.log(`${token.symbol} deposited.`);
-            return await tokenContract.balanceOf(signer.address); // 返回更新后的余额
-          }
-        }
-        return balance; // 如果不需要存款，直接返回当前余额
-      };
-
-      // 处理 token0 和 token1 的 WETH 存款逻辑
-      balance0 = await checkAndDepositWETH(
-        token0,
-        balance0,
-        amount0Desired,
-        token0Contract
-      );
-      balance1 = await checkAndDepositWETH(
-        token1,
-        balance1,
-        amount1Desired,
-        token1Contract
-      );
-
-      // 检查余额是否仍然不足
-      if (ethers.BigNumber.from(balance0.toString()).lt(amount0Desired)) {
-        throw new Error(`Insufficient ${token0.symbol} balance`);
-      }
-
-      if (ethers.BigNumber.from(balance1.toString()).lt(amount1Desired)) {
-        throw new Error(`Insufficient ${token1.symbol} balance`);
-      }
-
-      const poolData = await getPoolData(poolContract);
-      const params = {
-        token0: token0.id,
-        token1: token1.id,
-        fee: poolData.fee,
-        tickLower:
-          nearestUsableTick(poolData.tick, poolData.tickSpacing) -
-          poolData.tickSpacing * 2,
-        tickUpper:
-          nearestUsableTick(poolData.tick, poolData.tickSpacing) +
-          poolData.tickSpacing * 2,
-        amount0Desired,
-        amount1Desired,
-        amount0Min,
-        amount1Min,
-        recipient: signer.address,
-        deadline: Math.floor(Date.now() / 1000) + 60 * 10,
-      };
-      // console.log("params", params);
-
-      // 获取初始流动性数量
-      const initialPoolData = await getPoolData(poolContract);
-      console.log(
-        `Initial liquidity: ${ethers.utils.formatEther(
-          initialPoolData.liquidity.toString()
-        )}`
-      );
-
-      const tx = await nonfungiblePositionManager
-        .connect(signer)
-        .mint(params, { gasLimit: "5000000" });
-      await tx.wait();
-
-      // 获取更新后的流动性数量
-      const updatedPoolData = await getPoolData(poolContract);
-      console.log(
-        `Updated liquidity: ${ethers.utils.formatEther(
-          updatedPoolData.liquidity.toString()
-        )}`
-      );
-
-      // 计算增加的流动性数量
-      const addedLiquidity = ethers.BigNumber.from(
-        updatedPoolData.liquidity.toString()
-      ).sub(initialPoolData.liquidity.toString());
-      const formattedAddedLiquidity = ethers.utils.formatEther(
-        addedLiquidity.toString()
-      ); // 假设流动性单位为整数
-      console.log(`Added liquidity: ${formattedAddedLiquidity}`);
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   //SINGL SWAP TOKEN
@@ -784,6 +440,261 @@ export const SwapTokenContextProvider = ({ children }) => {
     return [amountOut, tokenSymbol0, tokenSymbol1];
   };
 
+  //CREATE AND ADD LIQUIDITY todo
+  const createLiquidityAndPool = async ({
+    token0,
+    token1,
+    fee,
+    amount0Desired,
+    amount1Desired,
+    slippage,
+    amount0Min,
+    amount1Min,
+    deadline = Math.floor(Date.now() / 1000) + 60 * deadline,
+  }) => {
+    try {
+      console.log("liquidity");
+      console.log("token0:", token0);
+      console.log("token1:", token1);
+      console.log("fee:", fee);
+      console.log("amount0Desired:", amount0Desired);
+      console.log("amount1Desired:", amount1Desired);
+      console.log("slippage:", slippage);
+      console.log("amount0Min:", amount0Min);
+      console.log("amount1Min:", amount1Min);
+      console.log("deadline:", deadline);
+
+      if (
+        !token0.tokenAddress ||
+        !token1.tokenAddress ||
+        !amount0Desired ||
+        !amount1Desired ||
+        !slippage ||
+        !amount0Min ||
+        !amount1Min ||
+        !deadline ||
+        fee <= 0
+      ) {
+        return;
+      }
+
+      const web3modal = new Web3Modal();
+      const connection = await web3modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
+      const signer = provider.getSigner();
+
+      if (
+        token1.tokenAddress1.toLowerCase() < token0.tokenAddress0.toLowerCase()
+      ) {
+        [token0, token1] = [token1, token0];
+      }
+
+      // 动态选择 ABI
+      const token0Contract = new Contract(
+        token0.tokenAddress,
+        token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
+          ? WETH_ABI
+          : Erc20Abi,
+        signer
+      );
+      const token1Contract = new Contract(
+        token1.tokenAddress,
+        token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
+          ? WETH_ABI
+          : Erc20Abi,
+        signer
+      );
+
+      let balance0 = await token0Contract.balanceOf(signer.address);
+      let balance1 = await token1Contract.balanceOf(signer.address);
+
+      console.log(
+        `Balance of ${token0.symbol}:`,
+        ethers.utils.formatUnits(balance0.toString(), token0.decimals)
+      );
+      console.log(
+        `Balance of ${token1.symbol}:`,
+        ethers.utils.formatUnits(balance1.toString(), token1.decimals)
+      );
+
+      const allowance0 = await token0Contract.allowance(
+        signer.address,
+        NON_FUNGABLE_POSITION_MANAGER_ADDRESS
+      );
+      const allowance1 = await token1Contract.allowance(
+        signer.address,
+        NON_FUNGABLE_POSITION_MANAGER_ADDRESS
+      );
+
+      if (allowance0.lt(ethers.constants.MaxUint256)) {
+        console.log("Approving tokenOne...");
+        await token0Contract
+          .connect(signer)
+          .approve(
+            NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
+            ethers.constants.MaxUint256
+          );
+        console.log("Token0 approved.");
+      }
+
+      if (allowance1.lt(ethers.constants.MaxUint256)) {
+        console.log("Approving tokenTwo...");
+        await token1Contract
+          .connect(signer)
+          .approve(
+            NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
+            ethers.constants.MaxUint256
+          );
+        console.log("Token1 approved.");
+      }
+
+      const nonfungiblePositionManager = new Contract(
+        NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
+        NonfungiblePositionManager.abi,
+        signer
+      );
+
+      // console.log(`Token0 allowance: ${ethers.utils.formatUnits(allowance0, tokenOne.decimals)}`);
+      // console.log(`Token1 allowance: ${ethers.utils.formatUnits(allowance1, tokenTwo.decimals)}`);
+
+      const factory = new Contract(
+        FACTORY_ADDRESS,
+        UniswapV3Factory.abi,
+        signer
+      );
+
+      const price = encodePriceSqrt(1, 1); //默认设置初始比例为 1:1 是一般适用于没有明确市场价的代币对
+      let poolAddress = await factory.getPool(
+        token0.tokenAddress,
+        token1.tokenAddress,
+        fee
+      );
+
+      //createAndInitializePoolIfNecessary中token0和token1需要先排序，否则报错Transaction rever ted without a reason string
+      if (poolAddress === ethers.constants.AddressZero) {
+        const transaction = await nonfungiblePositionManager
+          .connect(signer)
+          .createAndInitializePoolIfNecessary(
+            token0.tokenAddress,
+            token1.tokenAddress,
+            fee,
+            price,
+            {
+              gasLimit: 5000000,
+            }
+          );
+        await transaction.wait();
+        poolAddress = await factory
+          .connect(signer)
+          .getPool(token0.tokenAddress, token1.tokenAddress, fee);
+        console.log("Pool is created");
+      } else {
+        console.log("Pool already exists");
+      }
+      console.log(`poolAddress: ${poolAddress}`);
+
+      // 获取池数据
+      const poolContract = new Contract(poolAddress, UniswapV3Pool.abi, signer);
+
+      console.log(
+        `${token0.symbol} Required: ${amount0Desired}, 
+            Available: ${ethers.utils.formatUnits(
+              balance0.toString(),
+              token0.decimals
+            )}`
+      );
+
+      console.log(
+        `${token1.symbol} Required: ${amount1Desired}, 
+            Available: ${ethers.utils.formatUnits(
+              balance1.toString(),
+              token1.decimals
+            )}`
+      );
+
+      amount0Desired = ethers.utils
+        .parseUnits(amount0Desired, token0.decimals)
+        .toString();
+      amount1Desired = ethers.utils
+        .parseUnits(amount1Desired, token1.decimals)
+        .toString();
+
+      // 处理 token0 和 token1 的 WETH 存款逻辑
+      balance0 = await checkAndDepositWETH(
+        token0,
+        balance0,
+        amount0Desired,
+        token0Contract
+      );
+      balance1 = await checkAndDepositWETH(
+        token1,
+        balance1,
+        amount1Desired,
+        token1Contract
+      );
+
+      // 检查余额是否仍然不足
+      if (ethers.BigNumber.from(balance0.toString()).lt(amount0Desired)) {
+        throw new Error(`Insufficient ${token0.symbol} balance`);
+      }
+
+      if (ethers.BigNumber.from(balance1.toString()).lt(amount1Desired)) {
+        throw new Error(`Insufficient ${token1.symbol} balance`);
+      }
+
+      const poolData = await getPoolData(poolContract);
+      const params = {
+        token0: token0.tokenAddress,
+        token1: token1.tokenAddress,
+        fee: poolData.fee,
+        tickLower:
+          nearestUsableTick(poolData.tick, poolData.tickSpacing) -
+          poolData.tickSpacing * 2,
+        tickUpper:
+          nearestUsableTick(poolData.tick, poolData.tickSpacing) +
+          poolData.tickSpacing * 2,
+        amount0Desired,
+        amount1Desired,
+        amount0Min,
+        amount1Min,
+        recipient: signer.address,
+        deadline,
+      };
+
+      // 获取初始流动性数量
+      const initialPoolData = await getPoolData(poolContract);
+      console.log(
+        `Initial liquidity: ${ethers.utils.formatEther(
+          initialPoolData.liquidity.toString()
+        )}`
+      );
+
+      const tx = await nonfungiblePositionManager
+        .connect(signer)
+        .mint(params, { gasLimit: "5000000" });
+      await tx.wait();
+
+      // 获取更新后的流动性数量
+      const updatedPoolData = await getPoolData(poolContract);
+      console.log(
+        `Updated liquidity: ${ethers.utils.formatEther(
+          updatedPoolData.liquidity.toString()
+        )}`
+      );
+
+      // 计算增加的流动性数量
+      const addedLiquidity = ethers.BigNumber.from(
+        updatedPoolData.liquidity.toString()
+      ).sub(initialPoolData.liquidity.toString());
+      const formattedAddedLiquidity = ethers.utils.formatEther(
+        addedLiquidity.toString()
+      ); // 假设流动性单位为整数
+      console.log(`Added liquidity: ${formattedAddedLiquidity}`);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   // 需要开梯子
   const getAbi = async (address) => {
     const url = `https://api.etherscan.io/api?module=contract&action=getabi&address=${address}&apikey=${ETHERSCAN_API_KEY}`;
@@ -819,6 +730,23 @@ export const SwapTokenContextProvider = ({ children }) => {
       console.log(error);
     }
   };
+
+  async function getPoolData(poolContract) {
+    const [tickSpacing, fee, liquidity, slot0] = await Promise.all([
+      poolContract.tickSpacing(),
+      poolContract.fee(),
+      poolContract.liquidity(),
+      poolContract.slot0(),
+    ]);
+
+    return {
+      tickSpacing: tickSpacing,
+      fee: fee,
+      liquidity: liquidity,
+      sqrtPriceX96: slot0[0],
+      tick: slot0[1],
+    };
+  }
 
   //CONNECT WALLET
   const connectWallet = async () => {

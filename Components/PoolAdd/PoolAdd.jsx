@@ -21,8 +21,8 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const [fee, setFee] = useState(500);
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
-  const [tokenAmountOne, setTokenAmountOne] = useState(0);
-  const [tokenAmountTwo, setTokenAmountTwo] = useState(0);
+  const [tokenAmountOne, setTokenAmountOne] = useState(null);
+  const [tokenAmountTwo, setTokenAmountTwo] = useState(null);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
 
@@ -262,7 +262,6 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
                     clearTimeout(tokenOneTimeoutRef.current);
                     // 设置新的定时器
                     tokenOneTimeoutRef.current = setTimeout(async () => {
-                      console.log(333, value, tokenTwo.tokenAddress, fee);
                       if (value > 0 && tokenTwo.tokenAddress && fee > 0) {
                         const amountOut = await getPrice(
                           value,
@@ -370,15 +369,15 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
               <button
                 onClick={() => {
                   createLiquidityAndPool({
-                    tokenOne: tokenOne,
-                    tokenTwo: tokenTwo,
+                    token0: tokenOne,
+                    token1: tokenTwo,
                     fee: fee,
-                    tokenPrice1: minPrice,
-                    tokenPrice2: maxPrice,
+                    amount0Desired: tokenAmountOne,
+                    amount1Desired: tokenAmountTwo,
                     slippage: slippage,
+                    amount0Min: minPrice,
+                    amount1Min: maxPrice,
                     deadline: deadline,
-                    tokenAmountOne: tokenAmountOne,
-                    tokenAmountTwo: tokenAmountTwo,
                   });
                 }}
               >

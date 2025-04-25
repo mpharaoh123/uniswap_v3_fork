@@ -17,7 +17,7 @@ export const V3_SWAP_QUOTER_ADDRESS =
 export const ERC20_ABI = require("@uniswap/v2-core/build/IERC20.json").abi;
 
 //IWETH
-export const WETHAddress = "0x2d13826359803522cCe7a4Cfa2c1b582303DD0B4";
+export const WETH_ADDRESS = "0x2d13826359803522cCe7a4Cfa2c1b582303DD0B4";
 export const WETH_ABI = WETH9.abi;
 
 export const MainnetIWETHAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
