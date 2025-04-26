@@ -16,7 +16,7 @@ const { FACTORY_ADDRESS, tokenListMainnet } = require("../constants/constants");
 
 /*
   根据amount1Desired或amount2Desired获取另一个amountDesired和liquidityAmount，但结果不准确
-  npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet2.js
+  npx hardhat run --network localhost scripts/mainnetContract/fetchAmountOrLiquidity.js
 */
 
 const token0 = tokenListMainnet[1]; //0为weth

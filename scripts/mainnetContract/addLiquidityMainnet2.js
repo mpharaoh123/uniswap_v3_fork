@@ -19,8 +19,8 @@ const artifacts = {
 
 const { Contract, BigNumber } = require("ethers");
 const { nearestUsableTick } = require("@uniswap/v3-sdk");
-const bn = require("bignumber.js");
 const { ethers } = require("hardhat");
+const bn = require("bignumber.js");
 bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 /*

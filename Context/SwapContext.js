@@ -10,13 +10,15 @@ import NonfungiblePositionManager from "@uniswap/v3-periphery/artifacts/contract
 
 import { nearestUsableTick } from "@uniswap/v3-sdk";
 import axios from "axios";
-import { BigNumber, ethers } from "ethers";
+import bn from "bignumber.js";
+import { BigNumber, Contract, ethers } from "ethers";
 import React, { useEffect, useState } from "react";
 import Web3 from "web3";
 import Web3Modal from "web3modal";
 import {
   ALCHEMY_URL,
   ETHERSCAN_API_KEY,
+  FACTORY_ADDRESS,
   NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
   poolData,
   V3_SWAP_QUOTER_ADDRESS,
@@ -24,6 +26,7 @@ import {
   WETH_ABI,
   WETH_ADDRESS,
 } from "./constants";
+bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 export const SwapTokenContext = React.createContext();
 
@@ -361,10 +364,6 @@ export const SwapTokenContextProvider = ({ children }) => {
     }
 
     const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
-    // 确保 token0 的地址小于 token1 的地址
-    if (token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()) {
-      [token0, token1] = [token1, token0];
-    }
 
     const quoterContract = new ethers.Contract(
       V3_SWAP_QUOTER_ADDRESS,
@@ -441,7 +440,7 @@ export const SwapTokenContextProvider = ({ children }) => {
   };
 
   //CREATE AND ADD LIQUIDITY todo
-  const createLiquidityAndPool = async ({
+  const createPoolAndAddLiquidity = async ({
     token0,
     token1,
     fee,
@@ -450,19 +449,26 @@ export const SwapTokenContextProvider = ({ children }) => {
     slippage,
     amount0Min,
     amount1Min,
-    deadline = Math.floor(Date.now() / 1000) + 60 * deadline,
+    deadline,
   }) => {
     try {
-      console.log("liquidity");
-      console.log("token0:", token0);
-      console.log("token1:", token1);
-      console.log("fee:", fee);
-      console.log("amount0Desired:", amount0Desired);
-      console.log("amount1Desired:", amount1Desired);
-      console.log("slippage:", slippage);
-      console.log("amount0Min:", amount0Min);
-      console.log("amount1Min:", amount1Min);
-      console.log("deadline:", deadline);
+      // console.log("liquidity");
+      // console.log("token0:", token0);
+      // console.log("token1:", token1);
+      // console.log("fee:", fee);
+      // console.log("amount0Desired:", amount0Desired);
+      // console.log("amount1Desired:", amount1Desired);
+      // console.log("slippage:", slippage);
+      // console.log("amount0Min:", amount0Min);
+      // console.log("amount1Min:", amount1Min);
+      // console.log("deadline:", deadline);
+
+      // console.log("amount0Desired:", !amount0Desired);
+      // console.log("amount1Desired:", !amount1Desired);
+      // console.log("slippage:", !slippage);
+      // console.log("amount0Min:", !Number.isFinite(Number(amount0Min)));
+      // console.log("amount1Min:", !Number.isFinite(Number(amount1Min)));
+      // console.log("deadline:", !deadline);
 
       if (
         !token0.tokenAddress ||
@@ -470,8 +476,8 @@ export const SwapTokenContextProvider = ({ children }) => {
         !amount0Desired ||
         !amount1Desired ||
         !slippage ||
-        !amount0Min ||
-        !amount1Min ||
+        !Number.isFinite(Number(amount0Min)) || //判断是否是非数字或非字符串数字
+        !Number.isFinite(Number(amount1Min)) ||
         !deadline ||
         fee <= 0
       ) {
@@ -482,31 +488,26 @@ export const SwapTokenContextProvider = ({ children }) => {
       const connection = await web3modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
       const signer = provider.getSigner();
-
-      if (
-        token1.tokenAddress1.toLowerCase() < token0.tokenAddress0.toLowerCase()
-      ) {
-        [token0, token1] = [token1, token0];
-      }
+      const address = await signer.getAddress(); //ether 5.0以后，不能用signer.address
 
       // 动态选择 ABI
       const token0Contract = new Contract(
         token0.tokenAddress,
         token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
           ? WETH_ABI
-          : Erc20Abi,
+          : Erc20Abi.abi,
         signer
       );
       const token1Contract = new Contract(
         token1.tokenAddress,
         token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()
           ? WETH_ABI
-          : Erc20Abi,
+          : Erc20Abi.abi,
         signer
       );
 
-      let balance0 = await token0Contract.balanceOf(signer.address);
-      let balance1 = await token1Contract.balanceOf(signer.address);
+      let balance0 = await token0Contract.balanceOf(address);
+      let balance1 = await token1Contract.balanceOf(address);
 
       console.log(
         `Balance of ${token0.symbol}:`,
@@ -518,11 +519,11 @@ export const SwapTokenContextProvider = ({ children }) => {
       );
 
       const allowance0 = await token0Contract.allowance(
-        signer.address,
+        address,
         NON_FUNGABLE_POSITION_MANAGER_ADDRESS
       );
       const allowance1 = await token1Contract.allowance(
-        signer.address,
+        address,
         NON_FUNGABLE_POSITION_MANAGER_ADDRESS
       );
 
@@ -571,12 +572,18 @@ export const SwapTokenContextProvider = ({ children }) => {
       );
 
       //createAndInitializePoolIfNecessary中token0和token1需要先排序，否则报错Transaction rever ted without a reason string
+      let tokens = [token0, token1];
+      if (
+        token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()
+      ) {
+        tokens = [token1, token0];
+      }
       if (poolAddress === ethers.constants.AddressZero) {
         const transaction = await nonfungiblePositionManager
           .connect(signer)
           .createAndInitializePoolIfNecessary(
-            token0.tokenAddress,
-            token1.tokenAddress,
+            tokens[0].tokenAddress,
+            tokens[1].tokenAddress,
             fee,
             price,
             {
@@ -596,27 +603,41 @@ export const SwapTokenContextProvider = ({ children }) => {
       // 获取池数据
       const poolContract = new Contract(poolAddress, UniswapV3Pool.abi, signer);
 
-      console.log(
-        `${token0.symbol} Required: ${amount0Desired}, 
-            Available: ${ethers.utils.formatUnits(
-              balance0.toString(),
-              token0.decimals
-            )}`
+      const formatBalance0 = ethers.utils.formatUnits(
+        balance0.toString(),
+        token0.decimals
+      );
+      const formatBalance1 = ethers.utils.formatUnits(
+        balance1.toString(),
+        token1.decimals
       );
 
       console.log(
-        `${token1.symbol} Required: ${amount1Desired}, 
-            Available: ${ethers.utils.formatUnits(
-              balance1.toString(),
-              token1.decimals
-            )}`
+        `${token0.symbol} Required: ${amount0Desired}, Available: ${formatBalance0}`
       );
+      console.log(
+        `${token1.symbol} Required: ${amount1Desired}, Available: ${formatBalance1}`
+      );
+
+      if (parseFloat(formatBalance0) < parseFloat(amount0Desired)) {
+        alert(
+          `Insufficient ${token0.symbol} balance. Available: ${formatBalance0}, Required: ${amount0Desired}`
+        );
+        return;
+      }
+
+      if (parseFloat(formatBalance1) < parseFloat(amount1Desired)) {
+        alert(
+          `Insufficient ${token1.symbol} balance. Available: ${formatBalance1}, Required: ${amount1Desired}`
+        );
+        return;
+      }
 
       amount0Desired = ethers.utils
-        .parseUnits(amount0Desired, token0.decimals)
+        .parseUnits(amount0Desired.toString(), token0.decimals)
         .toString();
       amount1Desired = ethers.utils
-        .parseUnits(amount1Desired, token1.decimals)
+        .parseUnits(amount1Desired.toString(), token1.decimals)
         .toString();
 
       // 处理 token0 和 token1 的 WETH 存款逻辑
@@ -643,9 +664,11 @@ export const SwapTokenContextProvider = ({ children }) => {
       }
 
       const poolData = await getPoolData(poolContract);
+
+      // mint(params)中，token0和token1也要按地址大小排序，否则报code: -32603, message: 'Error: Transaction reverted without a reason string'
       const params = {
-        token0: token0.tokenAddress,
-        token1: token1.tokenAddress,
+        token0: tokens[0].tokenAddress,
+        token1: tokens[1].tokenAddress,
         fee: poolData.fee,
         tickLower:
           nearestUsableTick(poolData.tick, poolData.tickSpacing) -
@@ -657,8 +680,8 @@ export const SwapTokenContextProvider = ({ children }) => {
         amount1Desired,
         amount0Min,
         amount1Min,
-        recipient: signer.address,
-        deadline,
+        recipient: address,
+        deadline: Math.floor(Date.now() / 1000) + 60 * deadline,
       };
 
       // 获取初始流动性数量
@@ -693,6 +716,40 @@ export const SwapTokenContextProvider = ({ children }) => {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const encodePriceSqrt = (reserve1, reserve0) => {
+    return BigNumber.from(
+      new bn(reserve1.toString())
+        .div(reserve0.toString())
+        .sqrt()
+        .multipliedBy(new bn(2).pow(96))
+        .integerValue(3)
+        .toString()
+    );
+  };
+
+  // 检查并处理 WETH 余额不足的情况
+  const checkAndDepositWETH = async (
+    token,
+    balance,
+    amountDesired,
+    tokenContract
+  ) => {
+    if (token.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
+      if (ethers.BigNumber.from(balance.toString()).lt(amountDesired)) {
+        console.log(`Insufficient ${token.symbol} balance, depositing...`);
+        const wethDepositAmount =
+          ethers.BigNumber.from(amountDesired).sub(balance);
+        const wethContract = new Contract(WETH_ADDRESS, WETH_ABI, signer);
+        await wethContract.connect(signer).deposit({
+          value: wethDepositAmount.toString(),
+        });
+        console.log(`${token.symbol} deposited.`);
+        return await tokenContract.balanceOf(address); // 返回更新后的余额
+      }
+    }
+    return balance; // 如果不需要deposit，直接返回当前余额
   };
 
   // 需要开梯子
@@ -769,7 +826,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         connectWallet,
         getPrice,
         swapUpdatePrice,
-        createLiquidityAndPool,
+        createLiquidityAndPool: createPoolAndAddLiquidity,
         getAllLiquidity,
         account,
         networkConnect,

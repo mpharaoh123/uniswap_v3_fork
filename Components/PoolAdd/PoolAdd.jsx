@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 
 // INTERNAL IMPORT
 import images from "../../assets";
@@ -21,8 +21,8 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const [fee, setFee] = useState(500);
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
-  const [tokenAmountOne, setTokenAmountOne] = useState(null);
-  const [tokenAmountTwo, setTokenAmountTwo] = useState(null);
+  const [tokenAmountOne, setTokenAmountOne] = useState(5);
+  const [tokenAmountTwo, setTokenAmountTwo] = useState(0.1);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
 
@@ -65,15 +65,11 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   ];
 
   useEffect(() => {
-    console.log("TokenAmountTwo updated:", tokenAmountTwo);
-  }, [tokenAmountTwo]);
-
-  useEffect(() => {
     console.log("tokenData", tokenData);
     if (tokenData.length > 0) {
       // console.log("hero section tokenData:", tokenData);
-      const firstToken = tokenData[1];
-      const secondToken = tokenData[2];
+      const firstToken = tokenData[0];
+      const secondToken = tokenData[3];
 
       setTokenOne({
         name: firstToken.name,
@@ -92,44 +88,39 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
         decimals: secondToken.decimals,
       });
     }
-    // console.log(111, tokenOne);
-    // console.log(222, tokenTwo);
   }, [tokenData]);
 
-  // Effect to calculate the other token amount when one token amount changes
-  useEffect(() => {
-    const calculateOtherTokenAmount = async () => {
-      if (
-        tokenAmountOne > 0 &&
-        tokenOne.tokenAddress &&
-        tokenTwo.tokenAddress &&
-        fee
-      ) {
-        const amountOut = await getPrice(
-          tokenAmountOne,
-          tokenOne,
-          tokenTwo,
-          fee
-        );
+  // 输入框1的处理逻辑
+  const handleTokenAmountOneChange = (e) => {
+    const value = e.target.value;
+    setTokenAmountOne(value);
+    // 清除之前的定时器
+    clearTimeout(tokenOneTimeoutRef.current);
+    // 设置新的定时器
+    tokenOneTimeoutRef.current = setTimeout(async () => {
+      if (value > 0 && tokenTwo.tokenAddress && fee > 0) {
+        const amountOut = await getPrice(value, tokenOne, tokenTwo, fee);
+        console.log("amountOut", amountOut);
         setTokenAmountTwo(amountOut);
-      } else if (
-        tokenAmountTwo > 0 &&
-        tokenOne.tokenAddress &&
-        tokenTwo.tokenAddress &&
-        fee
-      ) {
-        const amountOut = await getPrice(
-          tokenAmountTwo,
-          tokenTwo,
-          tokenOne,
-          fee
-        );
+      }
+    }, 500); // 延迟1秒
+  };
+
+  // 输入框2的处理逻辑
+  const handleTokenAmountTwoChange = (e) => {
+    const value = e.target.value;
+    setTokenAmountTwo(value);
+    // 清除之前的定时器
+    clearTimeout(tokenTwoTimeoutRef.current);
+    // 设置新的定时器
+    tokenTwoTimeoutRef.current = setTimeout(async () => {
+      if (value > 0 && tokenOne.tokenAddress && fee > 0) {
+        const amountOut = await getPrice(value, tokenTwo, tokenOne, fee);
+        console.log("amountOut", amountOut);
         setTokenAmountOne(amountOut);
       }
-    };
-
-    calculateOtherTokenAmount();
-  }, [tokenAmountOne, tokenAmountTwo, tokenOne, tokenTwo, fee]);
+    }, 500); // 延迟1秒
+  };
 
   return (
     <div className={Style.PoolAdd}>
@@ -255,25 +246,7 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
                   type="number"
                   placeholder={tokenOne.tokenBalance.slice(0, 9)}
                   value={tokenAmountOne}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setTokenAmountOne(value);
-                    // 清除之前的定时器
-                    clearTimeout(tokenOneTimeoutRef.current);
-                    // 设置新的定时器
-                    tokenOneTimeoutRef.current = setTimeout(async () => {
-                      if (value > 0 && tokenTwo.tokenAddress && fee > 0) {
-                        const amountOut = await getPrice(
-                          value,
-                          tokenOne,
-                          tokenTwo,
-                          fee
-                        );
-                        console.log("amountOut", amountOut);
-                        setTokenAmountTwo(amountOut);
-                      }
-                    }, 1000); // 延迟1秒
-                  }}
+                  onChange={handleTokenAmountOneChange} // 使用防抖逻辑
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
@@ -288,25 +261,7 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
                   type="number"
                   placeholder={tokenTwo.tokenBalance.slice(0, 9)}
                   value={tokenAmountTwo}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setTokenAmountTwo(value);
-                    // 清除之前的定时器
-                    clearTimeout(tokenTwoTimeoutRef.current);
-                    // 设置新的定时器
-                    tokenTwoTimeoutRef.current = setTimeout(async () => {
-                      if (value > 0 && tokenOne.tokenAddress && fee > 0) {
-                        const amountOut = await getPrice(
-                          value,
-                          tokenTwo,
-                          tokenOne,
-                          fee
-                        );
-                        console.log("amountOut", amountOut);
-                        setTokenAmountOne(amountOut);
-                      }
-                    }, 1000); // 延迟1秒
-                  }}
+                  onChange={handleTokenAmountTwoChange} // 使用防抖逻辑
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>

@@ -6,6 +6,8 @@ const {
   WETH_ABI,
   ERC20_ABI,
   tokenListMainnet,
+  QUOTER_ADDRESS,
+  QUOTER_ABI,
 } = require("../constants/constants");
 
 /*
@@ -28,11 +30,6 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
     const deadline = Math.floor(Date.now() / 1000) + 600; // 截止时间（当前时间 + 10 分钟）
 
     const amountIn = ethers.utils.parseUnits(amountInNum, tokenIn.decimals); // 输入代币数量
-
-    const amountOutMinimum = ethers.utils.parseUnits(
-      (amountInNum * (1 - slippage)).toString(),
-      tokenOut.decimals
-    ); // 最小输出代币数量
 
     const sqrtPriceLimitX96 = ethers.constants.Zero; // 价格限制（可以设置为0，表示没有限制）
 
@@ -91,6 +88,11 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
       )} ${tokenOut.symbol}`
     );
 
+    const amountOutMinimum = ethers.utils.parseUnits(
+      (amountInNum * (1 - slippage)).toString(),
+      tokenOut.decimals
+    ); // 最小输出代币数量 容易revert交易
+
     // 构造调用参数
     const params = {
       tokenIn: tokenIn.id,
@@ -99,7 +101,7 @@ async function swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage) {
       recipient,
       deadline,
       amountIn,
-      amountOutMinimum,
+      amountOutMinimum: 0,
       sqrtPriceLimitX96,
     };
     // console.log("params", params);
@@ -149,6 +151,7 @@ async function main() {
     console.log(`Swapping ${tokenIn.symbol} to ${tokenOut.symbol}...`);
     await swapTokens(tokenIn, tokenOut, amountInNum, fee, slippage);
   }
+  // await swapTokens(tokenIn, tokenListMainnet[3], amountInNum, fee, slippage);
 }
 
 main()

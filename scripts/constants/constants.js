@@ -1,5 +1,7 @@
 const WETH_ABI = require("../constants/WETH9.json").abi;
 const ERC20_ABI = require("@uniswap/v2-core/build/IERC20.json").abi;
+const QUOTER_ABI =
+  require("@uniswap/v3-periphery/artifacts/contracts/lens/Quoter.sol/Quoter.json").abi;
 
 const poolData = require("./poolData.json");
 const poolDataMainnet = require("./poolDataMainnet.json");
@@ -19,6 +21,7 @@ const tokenListMainnet = poolDataMainnet.tokens;
 module.exports = {
   WETH_ABI,
   ERC20_ABI,
+  QUOTER_ABI,
   ETHERSCAN_API_KEY,
   ALCHEMY_URL,
   FACTORY_ADDRESS,
