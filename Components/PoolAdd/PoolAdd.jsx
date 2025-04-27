@@ -8,7 +8,7 @@ import Style from "./PoolAdd.module.css";
 
 import { SwapTokenContext } from "../../Context/SwapContext";
 
-const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
+const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openModel, setOpenModel] = useState(false);
   const [openTokenModelOne, setOpenTokenModelOne] = useState(false);
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
@@ -18,11 +18,10 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const [maxPrice, setMaxPrice] = useState(0);
 
   // NEW STATE
-  const [fee, setFee] = useState(500);
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
-  const [tokenAmountOne, setTokenAmountOne] = useState(5);
-  const [tokenAmountTwo, setTokenAmountTwo] = useState(0.1);
+  const [tokenAmountOne, setTokenAmountOne] = useState(1);
+  const [tokenAmountTwo, setTokenAmountTwo] = useState(1000);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
 
@@ -49,27 +48,31 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
   const feePairs = [
     {
       fee: "0.05%",
-      number: "0% Select",
+      info: "Best for stable pairs",
+      number: "67% Select",
       feeSystem: 500,
     },
     {
       fee: "0.3%",
-      number: "0% Select",
+      info: "Best for most pairs",
+      number: "28% Select",
       feeSystem: 3000,
     },
     {
       fee: "1%",
-      number: "0% Select",
+      info: "Best for exotic pairs",
+      number: "0.3% Select",
       feeSystem: 10000,
     },
   ];
+  const [fee, setFee] = useState(feePairs[0].feeSystem);
 
   useEffect(() => {
     console.log("tokenData", tokenData);
     if (tokenData.length > 0) {
       // console.log("hero section tokenData:", tokenData);
       const firstToken = tokenData[0];
-      const secondToken = tokenData[3];
+      const secondToken = tokenData[1];
 
       setTokenOne({
         name: firstToken.name,
@@ -230,6 +233,7 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
                         )}
                       </p>
                     </div>
+                    <small>{el.info}</small>
                     <p className={Style.PoolAdd_box_price_left_list_item_para}>
                       {el.number}
                     </p>
@@ -323,15 +327,17 @@ const PoolAdd = ({ setClosePool, createLiquidityAndPool }) => {
             <div className={Style.PoolAdd_box_price_right_amount}>
               <button
                 onClick={() => {
-                  createLiquidityAndPool({
+                  createPoolAndAddLiquidity({
                     token0: tokenOne,
                     token1: tokenTwo,
                     fee: fee,
                     amount0Desired: tokenAmountOne,
                     amount1Desired: tokenAmountTwo,
                     slippage: slippage,
-                    amount0Min: minPrice,
-                    amount1Min: maxPrice,
+                    amount0Min: 0,
+                    amount1Min: 0,
+                    minPrice: minPrice,
+                    maxPrice: maxPrice,
                     deadline: deadline,
                   });
                 }}

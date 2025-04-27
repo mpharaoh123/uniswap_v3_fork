@@ -8,7 +8,7 @@ import UniswapV3Factory from "@uniswap/v3-core/artifacts/contracts/UniswapV3Fact
 import UniswapV3Pool from "@uniswap/v3-core/artifacts/contracts/UniswapV3Pool.sol/UniswapV3Pool.json";
 import NonfungiblePositionManager from "@uniswap/v3-periphery/artifacts/contracts/NonfungiblePositionManager.sol/NonfungiblePositionManager.json";
 
-import { nearestUsableTick } from "@uniswap/v3-sdk";
+import { nearestUsableTick, TickMath } from "@uniswap/v3-sdk";
 import axios from "axios";
 import bn from "bignumber.js";
 import { BigNumber, Contract, ethers } from "ethers";
@@ -439,7 +439,6 @@ export const SwapTokenContextProvider = ({ children }) => {
     return [amountOut, tokenSymbol0, tokenSymbol1];
   };
 
-  //CREATE AND ADD LIQUIDITY todo
   const createPoolAndAddLiquidity = async ({
     token0,
     token1,
@@ -449,18 +448,22 @@ export const SwapTokenContextProvider = ({ children }) => {
     slippage,
     amount0Min,
     amount1Min,
+    minPrice, //token1 : token0 最小的汇率
+    maxPrice, //token1 : token0 最大的汇率
     deadline,
   }) => {
     try {
       // console.log("liquidity");
       // console.log("token0:", token0);
       // console.log("token1:", token1);
-      // console.log("fee:", fee);
+      console.log("fee:", fee);
       // console.log("amount0Desired:", amount0Desired);
       // console.log("amount1Desired:", amount1Desired);
       // console.log("slippage:", slippage);
       // console.log("amount0Min:", amount0Min);
       // console.log("amount1Min:", amount1Min);
+      console.log("minPrice:", minPrice);
+      console.log("maxPrice:", maxPrice);
       // console.log("deadline:", deadline);
 
       // console.log("amount0Desired:", !amount0Desired);
@@ -478,6 +481,8 @@ export const SwapTokenContextProvider = ({ children }) => {
         !slippage ||
         !Number.isFinite(Number(amount0Min)) || //判断是否是非数字或非字符串数字
         !Number.isFinite(Number(amount1Min)) ||
+        !Number.isFinite(Number(minPrice)) ||
+        !Number.isFinite(Number(maxPrice)) ||
         !deadline ||
         fee <= 0
       ) {
@@ -663,19 +668,45 @@ export const SwapTokenContextProvider = ({ children }) => {
         throw new Error(`Insufficient ${token1.symbol} balance`);
       }
 
-      const poolData = await getPoolData(poolContract);
+      const initialPoolData = await getPoolData(poolContract);
+      // 获取初始流动性数量
+      console.log(
+        `Initial liquidity: ${ethers.utils.formatEther(
+          initialPoolData.liquidity.toString()
+        )}`
+      );
 
-      // mint(params)中，token0和token1也要按地址大小排序，否则报code: -32603, message: 'Error: Transaction reverted without a reason string'
+      function calculateMinPriceAndMaxPrice(initialPoolData) {
+        // 计算 nearestUsableTick
+        const usableTick = nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing);
+      
+        // 计算 tickLower 和 tickUpper
+        const tickLower = usableTick - initialPoolData.tickSpacing * 2;
+        const tickUpper = usableTick + initialPoolData.tickSpacing * 2;
+      
+        // 计算 minPrice 和 maxPrice
+        const minPrice = Math.pow(1.0001, tickLower);
+        const maxPrice = Math.pow(1.0001, tickUpper);
+      
+        return { minPrice, maxPrice };
+      }
+      
+      //todo minPrice maxPrice
+      console.log("price", calculateMinPriceAndMaxPrice(initialPoolData));
+      
+      /**
+       * 1. tick（刻度）价格曲线上的离散点，表示固定价格，范围为 [−887272,887272]。
+         2. tickSpacing（刻度间距）：定义了两个连续可用 tick 之间的距离，与池的手续费费率相关，决定了可用的 tick 的间隔
+         3. mint(params)中，token0和token1也要按地址大小排序，否则报code: -32603, message: 'Error: Transaction reverted without a reason string'
+       */      
       const params = {
         token0: tokens[0].tokenAddress,
         token1: tokens[1].tokenAddress,
-        fee: poolData.fee,
-        tickLower:
-          nearestUsableTick(poolData.tick, poolData.tickSpacing) -
-          poolData.tickSpacing * 2,
-        tickUpper:
-          nearestUsableTick(poolData.tick, poolData.tickSpacing) +
-          poolData.tickSpacing * 2,
+        fee: fee,
+        tickLower: nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) - initialPoolData.tickSpacing * 2,
+        tickUpper: nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) + initialPoolData.tickSpacing * 2,
+        // tickLower: calculateTicks(minPrice, maxPrice).tickLower,
+        // tickUpper: calculateTicks(minPrice, maxPrice).tickUpper,
         amount0Desired,
         amount1Desired,
         amount0Min,
@@ -683,14 +714,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         recipient: address,
         deadline: Math.floor(Date.now() / 1000) + 60 * deadline,
       };
-
-      // 获取初始流动性数量
-      const initialPoolData = await getPoolData(poolContract);
-      console.log(
-        `Initial liquidity: ${ethers.utils.formatEther(
-          initialPoolData.liquidity.toString()
-        )}`
-      );
+      console.log("params",params);
 
       const tx = await nonfungiblePositionManager
         .connect(signer)
@@ -717,6 +741,27 @@ export const SwapTokenContextProvider = ({ children }) => {
       console.log(error);
     }
   };
+
+  function calculateTicks(minPrice, maxPrice) {
+    const tickLower = Math.floor(Math.log(minPrice) / Math.log(1.0001));
+    const tickUpper = Math.floor(Math.log(maxPrice) / Math.log(1.0001));
+
+    console.log("tickLower", tickLower);
+    console.log("tickUpper", tickUpper);
+
+    // 确保 tickLower 和 tickUpper 符合 Uniswap V3 的要求
+    if (tickLower < TickMath.MIN_TICK) {
+      throw new Error("tickLower is below the minimum allowed value.");
+    }
+    if (tickUpper > TickMath.MAX_TICK) {
+      throw new Error("tickUpper exceeds the maximum allowed value.");
+    }
+    if (tickLower >= tickUpper) {
+      throw new Error("tickLower must be less than tickUpper.");
+    }
+
+    return { tickLower, tickUpper };
+  }
 
   const encodePriceSqrt = (reserve1, reserve0) => {
     return BigNumber.from(
@@ -826,7 +871,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         connectWallet,
         getPrice,
         swapUpdatePrice,
-        createLiquidityAndPool: createPoolAndAddLiquidity,
+        createPoolAndAddLiquidity,
         getAllLiquidity,
         account,
         networkConnect,
