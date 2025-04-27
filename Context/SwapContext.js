@@ -448,22 +448,24 @@ export const SwapTokenContextProvider = ({ children }) => {
     slippage,
     amount0Min,
     amount1Min,
-    minPrice, //token1 : token0 最小的汇率
-    maxPrice, //token1 : token0 最大的汇率
+    rangeLower, //上偏移量
+    rangeUpper, //下偏移量
+    // minPrice, //token1 : token0 最小的汇率
+    // maxPrice, //token1 : token0 最大的汇率
     deadline,
   }) => {
     try {
       // console.log("liquidity");
       // console.log("token0:", token0);
       // console.log("token1:", token1);
-      console.log("fee:", fee);
+      // console.log("fee:", fee);
       // console.log("amount0Desired:", amount0Desired);
       // console.log("amount1Desired:", amount1Desired);
       // console.log("slippage:", slippage);
       // console.log("amount0Min:", amount0Min);
       // console.log("amount1Min:", amount1Min);
-      console.log("minPrice:", minPrice);
-      console.log("maxPrice:", maxPrice);
+      console.log("rangeLower:", rangeLower);
+      console.log("rangeUpper:", rangeUpper);
       // console.log("deadline:", deadline);
 
       // console.log("amount0Desired:", !amount0Desired);
@@ -481,11 +483,15 @@ export const SwapTokenContextProvider = ({ children }) => {
         !slippage ||
         !Number.isFinite(Number(amount0Min)) || //判断是否是非数字或非字符串数字
         !Number.isFinite(Number(amount1Min)) ||
-        !Number.isFinite(Number(minPrice)) ||
-        !Number.isFinite(Number(maxPrice)) ||
+        !Number.isFinite(Number(rangeLower)) ||
+        Number(rangeLower) <= 0 ||
+        !Number.isFinite(Number(rangeUpper)) ||
+        Number(rangeUpper) <= 0 ||
         !deadline ||
         fee <= 0
       ) {
+        console.log("return");
+        alert("illegal params");
         return;
       }
 
@@ -523,6 +529,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         ethers.utils.formatUnits(balance1.toString(), token1.decimals)
       );
 
+      //检查代币对NON_FUNGABLE_POSITION_MANAGER_ADDRESS合约的allowance
       const allowance0 = await token0Contract.allowance(
         address,
         NON_FUNGABLE_POSITION_MANAGER_ADDRESS
@@ -569,6 +576,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         signer
       );
 
+      // 创建pool或获取pool信息
       const price = encodePriceSqrt(1, 1); //默认设置初始比例为 1:1 是一般适用于没有明确市场价的代币对
       let poolAddress = await factory.getPool(
         token0.tokenAddress,
@@ -581,6 +589,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       if (
         token1.tokenAddress.toLowerCase() < token0.tokenAddress.toLowerCase()
       ) {
+        console.log("reverse token pair");
         tokens = [token1, token0];
       }
       if (poolAddress === ethers.constants.AddressZero) {
@@ -605,7 +614,6 @@ export const SwapTokenContextProvider = ({ children }) => {
       }
       console.log(`poolAddress: ${poolAddress}`);
 
-      // 获取池数据
       const poolContract = new Contract(poolAddress, UniswapV3Pool.abi, signer);
 
       const formatBalance0 = ethers.utils.formatUnits(
@@ -624,6 +632,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         `${token1.symbol} Required: ${amount1Desired}, Available: ${formatBalance1}`
       );
 
+      // 检查代币余额是否足够
       if (parseFloat(formatBalance0) < parseFloat(amount0Desired)) {
         alert(
           `Insufficient ${token0.symbol} balance. Available: ${formatBalance0}, Required: ${amount0Desired}`
@@ -676,37 +685,36 @@ export const SwapTokenContextProvider = ({ children }) => {
         )}`
       );
 
-      function calculateMinPriceAndMaxPrice(initialPoolData) {
-        // 计算 nearestUsableTick
-        const usableTick = nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing);
-      
-        // 计算 tickLower 和 tickUpper
-        const tickLower = usableTick - initialPoolData.tickSpacing * 2;
-        const tickUpper = usableTick + initialPoolData.tickSpacing * 2;
-      
-        // 计算 minPrice 和 maxPrice
-        const minPrice = Math.pow(1.0001, tickLower);
-        const maxPrice = Math.pow(1.0001, tickUpper);
-      
-        return { minPrice, maxPrice };
-      }
-      
-      //todo minPrice maxPrice
-      console.log("price", calculateMinPriceAndMaxPrice(initialPoolData));
-      
+      //minPrice maxPrice 计算和反计算
+      // const { minPrice1, maxPrice1 } = calculateMinPriceAndMaxPrice(
+      //   initialPoolData.tick,
+      //   initialPoolData.tickSpacing
+      // );
+      // console.log("tickLower, tickUpper", calculateTicks(minPrice1, maxPrice1));
+
       /**
        * 1. tick（刻度）价格曲线上的离散点，表示固定价格，范围为 [−887272,887272]。
          2. tickSpacing（刻度间距）：定义了两个连续可用 tick 之间的距离，与池的手续费费率相关，决定了可用的 tick 的间隔
          3. mint(params)中，token0和token1也要按地址大小排序，否则报code: -32603, message: 'Error: Transaction reverted without a reason string'
-       */      
+         4. 根据minPrice和maxPrice计算tickLower和tickUpper有问题，暂时用range代替
+       */
+      const tickLower =
+        nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) -
+        initialPoolData.tickSpacing * rangeLower;
+      const tickUpper =
+        nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) +
+        initialPoolData.tickSpacing * rangeUpper;
+      console.log("tickLower", tickLower);
+      console.log("tickUpper", tickUpper);
+
       const params = {
         token0: tokens[0].tokenAddress,
         token1: tokens[1].tokenAddress,
         fee: fee,
-        tickLower: nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) - initialPoolData.tickSpacing * 2,
-        tickUpper: nearestUsableTick(initialPoolData.tick, initialPoolData.tickSpacing) + initialPoolData.tickSpacing * 2,
-        // tickLower: calculateTicks(minPrice, maxPrice).tickLower,
-        // tickUpper: calculateTicks(minPrice, maxPrice).tickUpper,
+        tickLower: tickLower,
+        tickUpper: tickUpper,
+        // tickLower: calculateTicks(minPrice, maxPrice, initialPoolData.tickSpacing).tickLower,
+        // tickUpper: calculateTicks(minPrice, maxPrice, initialPoolData.tickSpacing).tickUpper,
         amount0Desired,
         amount1Desired,
         amount0Min,
@@ -714,7 +722,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         recipient: address,
         deadline: Math.floor(Date.now() / 1000) + 60 * deadline,
       };
-      console.log("params",params);
+      console.log("params", params);
 
       const tx = await nonfungiblePositionManager
         .connect(signer)
@@ -742,25 +750,53 @@ export const SwapTokenContextProvider = ({ children }) => {
     }
   };
 
-  function calculateTicks(minPrice, maxPrice) {
+  //todo 根据minPrice, maxPrice计算tickLower和tickUpper；计算出来的不太对，且添加流动性的话流动性数量为0
+  function calculateTicks(minPrice, maxPrice, tickSpacing) {
+    // 将价格转换为 tick
     const tickLower = Math.floor(Math.log(minPrice) / Math.log(1.0001));
     const tickUpper = Math.floor(Math.log(maxPrice) / Math.log(1.0001));
 
-    console.log("tickLower", tickLower);
-    console.log("tickUpper", tickUpper);
+    // 确保 tickLower 和 tickUpper 是可用的 tick
+    const nearestUsableTick = (tick, spacing) => {
+      return Math.floor(tick / spacing) * spacing;
+    };
+
+    const usableTickLower = nearestUsableTick(tickLower, tickSpacing);
+    const usableTickUpper = nearestUsableTick(tickUpper, tickSpacing);
+
+    console.log("tickLower", usableTickLower);
+    console.log("tickUpper", usableTickUpper);
 
     // 确保 tickLower 和 tickUpper 符合 Uniswap V3 的要求
-    if (tickLower < TickMath.MIN_TICK) {
+    if (usableTickLower < TickMath.MIN_TICK) {
       throw new Error("tickLower is below the minimum allowed value.");
     }
-    if (tickUpper > TickMath.MAX_TICK) {
+    if (usableTickUpper > TickMath.MAX_TICK) {
       throw new Error("tickUpper exceeds the maximum allowed value.");
     }
-    if (tickLower >= tickUpper) {
+    if (usableTickLower >= usableTickUpper) {
       throw new Error("tickLower must be less than tickUpper.");
     }
+    return { tickLower: usableTickLower, tickUpper: usableTickUpper };
+  }
 
-    return { tickLower, tickUpper };
+  //根据poolData反算minPrice1, maxPrice1
+  function calculateMinPriceAndMaxPrice(tick, tickSpacing) {
+    // 计算 nearestUsableTick
+    const usableTick = nearestUsableTick(tick, tickSpacing);
+
+    // 计算 tickLower 和 tickUpper
+    const tickLower = usableTick - tickSpacing;
+    const tickUpper = usableTick + tickSpacing;
+    console.log("init tickLower", tickLower);
+    console.log("init tickUpper", tickUpper);
+
+    // 计算 minPrice 和 maxPrice
+    const minPrice1 = Math.pow(1.0001, tickLower);
+    const maxPrice1 = Math.pow(1.0001, tickUpper);
+
+    console.log("price", minPrice1, maxPrice1);
+    return { minPrice1, maxPrice1 };
   }
 
   const encodePriceSqrt = (reserve1, reserve0) => {

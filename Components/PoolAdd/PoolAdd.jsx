@@ -14,14 +14,15 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
   const [active, setActive] = useState(1);
   const [openFee, setOpenFee] = useState(false);
-  const [minPrice, setMinPrice] = useState(0);
-  const [maxPrice, setMaxPrice] = useState(0);
+  const [rangeLower, setRangeLower] = useState(1);
+  const [rangeUpper, setRangeUpper] = useState(0);
+  // const [minPrice, setMinPrice] = useState(0);
+  // const [maxPrice, setMaxPrice] = useState(0);
 
-  // NEW STATE
   const [slippage, setSlippage] = useState(25);
   const [deadline, setDeadline] = useState(10);
   const [tokenAmountOne, setTokenAmountOne] = useState(1);
-  const [tokenAmountTwo, setTokenAmountTwo] = useState(1000);
+  const [tokenAmountTwo, setTokenAmountTwo] = useState(1800);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
 
@@ -292,33 +293,34 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
 
             <div className={Style.PoolAdd_box_price_right_range}>
               <div className={Style.PoolAdd_box_price_right_range_box}>
-                <p>Min Price</p>
+                <p>Lower Range</p>
                 <input
                   type="number"
-                  placeholder="0.000"
-                  min="0.00"
-                  step="0.001"
+                  placeholder="0.0"
+                  min="0.0"
+                  step="0.1"
                   className={Style.PoolAdd_box_price_right_range_box_para}
-                  onChange={(e) => setMinPrice(e.target.value)}
+                  onChange={(e) => setRangeLower(e.target.value)}
                 />
                 <p>
-                  {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"}
+                  {/* {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"} */}
+                  Number of tick spacings below the current tick
                 </p>
               </div>
               {/* //MAX */}
               <div className={Style.PoolAdd_box_price_right_range_box}>
-                <p>Max Price</p>
+                <p>Upper Range</p>
                 <input
                   type="number"
-                  placeholder="0.000"
-                  min="0.000"
-                  step="0.001"
+                  placeholder="0.0"
+                  min="0.0"
+                  step="0.1"
                   className={Style.PoolAdd_box_price_right_range_box_para}
-                  onChange={(e) => setMaxPrice(e.target.value)}
+                  onChange={(e) => setRangeUpper(e.target.value)}
                 />
                 <p>
-                  {" "}
-                  {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"}
+                  {/* {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"} */}
+                  Number of tick spacings above the current tick
                 </p>
               </div>
             </div>
@@ -336,8 +338,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     slippage: slippage,
                     amount0Min: 0,
                     amount1Min: 0,
-                    minPrice: minPrice,
-                    maxPrice: maxPrice,
+                    rangeLower: rangeLower,
+                    rangeUpper: rangeUpper,
                     deadline: deadline,
                   });
                 }}
