@@ -1,20 +1,25 @@
-import React from "react";
 import Image from "next/image";
+import React, { useEffect, useState } from "react";
 
 //INTERNAL IMPORT
-import Style from "./PoolConnect.module.css";
 import images from "../../assets";
+import Style from "./PoolConnect.module.css";
 
-const PoolConnect = ({ setClosePool, getAllLiquidity, account }) => {
+const PoolConnect = ({ setClosePool, account }) => {
+  const [liquidityInfos, setLiquidityInfos] = useState({});
 
-  // console.log("getAllLiquidity", getAllLiquidity);
+  useEffect(() => {
+    const liquidityPools =
+      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+    setLiquidityInfos(liquidityPools);
+  }, []);
 
-  let tokenList = [];
-  for (let i = 0; i < getAllLiquidity.length; i++) {
-    if (i % 2 == 1) tokenList.push(getAllLiquidity[i]);
-  }
+  const formatLiquidity = (liquidity) => {
+    // 使用 toFixed(20) 格式化数值，并移除末尾的零
+    const formatted = parseFloat(liquidity).toFixed(20);
+    return formatted.replace(/0+$/, "").replace(/\.$/, ""); // 移除末尾的零和点
+  };
 
-  console.log("pool connect tokenList", tokenList);
   return (
     <div className={Style.PoolConnect}>
       <div className={Style.PoolConnect_box}>
@@ -32,48 +37,28 @@ const PoolConnect = ({ setClosePool, getAllLiquidity, account }) => {
         ) : (
           <div className={Style.PoolConnect_box_liquidity}>
             <div className={Style.PoolConnect_box_liquidity_header}>
-              <p>Your Position {tokenList.length}</p>
+              <p>Your Position</p>
             </div>
-
-            {tokenList.map((el, i) => (
-              <div className={Style.PoolConnect_box_liquidity_box}>
-                <div className={Style.PoolConnect_box_liquidity_list}>
-                  <p>
-                    <small className={Style.mark}>
-                      {el.poolExample.token0.name}
-                    </small>
-                    {""}
-                    <small className={Style.mark}>
-                      {el.poolExample.token1.name}
-                    </small>
-                    {""}
-                    <span className={(Style.paragraph, Style.hide)}>
-                      {el.poolExample.token0.name} /{el.poolExample.token1.name}
-                    </span>
-                    {""}
-                    <span className={Style.paragraph}>{el.fee}</span>
-                    {""}
-                  </p>
-                  <p className={Style.highlight}>In Range</p>
-                </div>
-                <div className={Style.PoolConnect_box_liquidity_list_info}>
-                  <p>
-                    <small>Min: 0.999</small>
-                    {""}
-                    <span>
-                      {el.poolExample.token0.name} per {""}{" "}
-                      {el.poolExample.token1.name}
-                    </span>
-                    {""} <span>--------</span> <small>Max: 1.000</small>
-                    {""}
-                    <span className={Style.hide}>
-                      {el.poolExample.token0.name} per {""}{" "}
-                      {el.poolExample.token1.name}
-                    </span>
-                  </p>
-                </div>
-              </div>
-            ))}
+            {Object.keys(liquidityInfos).length > 0 ? (
+              <ul className={Style.PoolConnect_box_liquidity_list}>
+                {Object.keys(liquidityInfos).map((poolAddress) => (
+                  <li
+                    key={poolAddress}
+                    className={Style.PoolConnect_box_liquidity_item}
+                  >
+                    <div>
+                      <p>
+                        Pair {liquidityInfos[poolAddress].token0}/
+                        {liquidityInfos[poolAddress].token1} liquidity is{" "}
+                        {formatLiquidity(liquidityInfos[poolAddress].liquidity)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No liquidity positions found.</p>
+            )}
           </div>
         )}
 

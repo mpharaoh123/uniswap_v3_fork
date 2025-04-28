@@ -38,7 +38,6 @@ export const SwapTokenContextProvider = ({ children }) => {
   const [networkConnect, setNetworkConnect] = useState("");
 
   const [tokenData, setTokenData] = useState([]);
-  const [getAllLiquidity, setGetAllLiquidity] = useState([]);
   //TOP TOKENS
   const [topTokensList, setTopTokensList] = useState([]);
 
@@ -105,23 +104,6 @@ export const SwapTokenContextProvider = ({ children }) => {
       }
       setTokenData(fetchedTokenData);
       console.log("tokenData", tokenData);
-
-      // //GET LIQUDITY
-      // const userStorageData = await connectingWithUserStorageContract();
-      // const userLiquidity = await userStorageData.getAllTransactions();
-      // console.log("userLiquidity", userLiquidity);
-
-      // userLiquidity.map(async (el, i) => {
-      //   const liquidityData = await getLiquidityData(
-      //     el.poolAddress,
-      //     el.tokenAddress0,
-      //     el.tokenAddress1
-      //   );
-
-      //   getAllLiquidity.push(liquidityData);
-      //   console.log("getAllLiquidity", getAllLiquidity);
-      // });
-
       setTopTokensList(poolData);
     } catch (error) {
       console.log(error);
@@ -743,12 +725,59 @@ export const SwapTokenContextProvider = ({ children }) => {
       ).sub(initialPoolData.liquidity.toString());
       const formattedAddedLiquidity = ethers.utils.formatEther(
         addedLiquidity.toString()
-      ); // 假设流动性单位为整数
+      );
       console.log(`Added liquidity: ${formattedAddedLiquidity}`);
+      alert(`Added liquidity: ${formattedAddedLiquidity}`);
+      updateLiquidityInfo(
+        poolAddress,
+        token0.symbol,
+        token1.symbol,
+        formattedAddedLiquidity
+      );
+      localStorage.setItem("myObject", JSON.stringify(myObject));
     } catch (error) {
       console.log(error);
     }
   };
+
+  // 更新或添加流动性信息的方法
+  function updateLiquidityInfo(
+    poolAddress,
+    token0,
+    token1,
+    formattedAddedLiquidity
+  ) {
+    // 从 localStorage 获取现有的流动性池数据
+    let liquidityPools =
+      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+
+    // 检查是否已有该 poolAddress
+    if (liquidityPools[poolAddress]) {
+      // 如果已有，将新的流动性数值加到原有的流动性数值上
+      liquidityPools[poolAddress].liquidity += parseFloat(
+        formattedAddedLiquidity
+      );
+    } else {
+      // 如果没有，添加新的流动性信息
+      liquidityPools[poolAddress] = {
+        token0,
+        token1,
+        liquidity: parseFloat(formattedAddedLiquidity),
+      };
+    }
+
+    // 存储更新后的数据
+    localStorage.setItem("liquidityPools", JSON.stringify(liquidityPools));
+  }
+
+  // 从 localStorage 获取特定流动性池的流动性信息的方法
+  function getLiquidityInfo(poolAddress) {
+    // 从 localStorage 获取所有流动性池数据
+    const liquidityPools =      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+
+    // 返回特定 poolAddress 的流动性信息
+    return liquidityPools[poolAddress] || null;
+  }
 
   //todo 根据minPrice, maxPrice计算tickLower和tickUpper；计算出来的不太对，且添加流动性的话流动性数量为0
   function calculateTicks(minPrice, maxPrice, tickSpacing) {
@@ -908,7 +937,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         getPrice,
         swapUpdatePrice,
         createPoolAndAddLiquidity,
-        getAllLiquidity,
+        getLiquidityInfo,
         account,
         networkConnect,
         ether,

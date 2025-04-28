@@ -48,6 +48,12 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
 
   const feePairs = [
     {
+      fee: "0.01%",
+      info: "Best for ultra-stable pairs",
+      number: "5% Select",
+      feeSystem: 100,
+    },
+    {
       fee: "0.05%",
       info: "Best for stable pairs",
       number: "67% Select",
@@ -145,7 +151,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           <div className={Style.PoolAdd_box_header_right}>
             <p>
               {tokenOne.name || ""} {tokenOne.tokenBalance.slice(0, 9) || ""}
-              {"    "}
+              <br />
               {tokenTwo.name || ""} {tokenTwo.tokenBalance.slice(0, 9) || ""}
             </p>
             <Image
@@ -211,35 +217,39 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
             {/* //FEE LIST */}
             {openFee && (
               <div className={Style.PoolAdd_box_price_left_list}>
-                {feePairs.map((el, i) => (
-                  <div
-                    className={Style.PoolAdd_box_price_left_list_item}
-                    key={i + 1}
-                    onClick={() => (setActive(i + 1), setFee(el.feeSystem))}
-                  >
+                <div className={Style.PoolAdd_box_price_left_list_row}>
+                  {feePairs.map((el, i) => (
                     <div
-                      className={Style.PoolAdd_box_price_left_list_item_info}
+                      className={Style.PoolAdd_box_price_left_list_item}
+                      key={i + 1}
+                      onClick={() => (setActive(i + 1), setFee(el.feeSystem))}
                     >
-                      <p>{el.fee}</p>
-                      <p>
-                        {active == i + 1 ? (
-                          <Image
-                            src={images.tick}
-                            alt="image"
-                            width={20}
-                            height={20}
-                          />
-                        ) : (
-                          ""
-                        )}
+                      <div
+                        className={Style.PoolAdd_box_price_left_list_item_info}
+                      >
+                        <p>{el.fee}</p>
+                        <p>
+                          {active == i + 1 ? (
+                            <Image
+                              src={images.tick}
+                              alt="image"
+                              width={20}
+                              height={20}
+                            />
+                          ) : (
+                            ""
+                          )}
+                        </p>
+                      </div>
+                      <small>{el.info}</small>
+                      <p
+                        className={Style.PoolAdd_box_price_left_list_item_para}
+                      >
+                        {el.number}
                       </p>
                     </div>
-                    <small>{el.info}</small>
-                    <p className={Style.PoolAdd_box_price_left_list_item_para}>
-                      {el.number}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
@@ -255,7 +265,12 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
-                    <small>{tokenOne.name || "ETH"}</small> {""}{" "}
+                    <Image
+                      src={images.etherlogo}
+                      alt="image"
+                      width={20}
+                      height={20}
+                    />
                     {tokenOne.symbol || "Ether"}
                   </p>
                 </div>
@@ -270,7 +285,12 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
-                    <small>{tokenTwo.name || "ETH"}</small> {""}{" "}
+                    <Image
+                      src={images.etherlogo}
+                      alt="image"
+                      width={20}
+                      height={20}
+                    />
                     {tokenTwo.symbol || "Select"}
                   </p>
                 </div>
@@ -279,14 +299,9 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           </div>
           {/* RIGHT */}
           <div className={Style.PoolAdd_box_price_right}>
-            <h4>Set Price Range</h4>
+            <h5>Set Range: Number of tick spacings range</h5>
             <div className={Style.PoolAdd_box_price_right_box}>
-              <p className={Style.PoolAdd_box_price_right_box_para}>
-                Current Price: {tokenOne.name || "ETH"} per{" "}
-                {tokenTwo.name || "Select"}
-              </p>
               <Image src={images.wallet} alt="wallet" height={80} width={80} />
-              <h3>Your position will appear here.</h3>
             </div>
 
             {/* //PRICE RANGE */}

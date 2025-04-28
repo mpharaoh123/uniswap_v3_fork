@@ -7,10 +7,10 @@ import { PoolAdd, PoolConnect } from "../Components/index";
 import { SwapTokenContext } from "../Context/SwapContext";
 
 const Pool = () => {
-  const { account, createPoolAndAddLiquidity, tokenData, getAllLiquidity } =
+  const { account, createPoolAndAddLiquidity, tokenData } =
     useContext(SwapTokenContext);
 
-  const [closePool, setClosePool] = useState(true); //todo false
+  const [closePool, setClosePool] = useState(false); //todo false
 
   return (
     <div className={Style.Pool}>
@@ -24,7 +24,6 @@ const Pool = () => {
       ) : (
         <PoolConnect
           setClosePool={setClosePool}
-          getAllLiquidity={getAllLiquidity}
           account={account}
         />
       )}
