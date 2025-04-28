@@ -25,8 +25,10 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [tokenAmountTwo, setTokenAmountTwo] = useState(1800);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
+  const [currentPoolAddress, setCurrentPoolAddress] = useState(null); //todo token0 token1 fee 变化时 setCurrentPoolAddress
 
-  const { tokenData, getPrice } = useContext(SwapTokenContext);
+  const { getLiquidityForPool, tokenData, getPrice } =
+    useContext(SwapTokenContext);
 
   const [tokenOne, setTokenOne] = useState({
     name: "",
@@ -301,7 +303,16 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           <div className={Style.PoolAdd_box_price_right}>
             <h5>Set Range: Number of tick spacings range</h5>
             <div className={Style.PoolAdd_box_price_right_box}>
+              <p className={Style.PoolAdd_box_price_right_box_para}></p>
               <Image src={images.wallet} alt="wallet" height={80} width={80} />
+              {/* 显示流动性信息 */}
+              {currentPoolAddress && (
+                <div className={Style.PoolAdd_box_price_liquidity}>
+                  <p>Pool Address: {currentPoolAddress}</p>
+                  <p>Liquidity: {getLiquidityForPool(currentPoolAddress)}</p>
+                </div>
+              )}
+              <h3>Your position will appear here.</h3>
             </div>
 
             {/* //PRICE RANGE */}

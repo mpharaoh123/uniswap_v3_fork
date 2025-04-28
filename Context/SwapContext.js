@@ -734,11 +734,25 @@ export const SwapTokenContextProvider = ({ children }) => {
         token1.symbol,
         formattedAddedLiquidity
       );
-      localStorage.setItem("myObject", JSON.stringify(myObject));
     } catch (error) {
       console.log(error);
     }
   };
+
+  function getLiquidityForPool(poolAddress) {
+    // 从 localStorage 获取现有的流动性池数据
+    const liquidityPools =
+      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+
+    // 直接通过 poolAddress 获取流动性信息
+    const poolInfo = liquidityPools[poolAddress];
+    if (poolInfo) {
+      return poolInfo.liquidity; // 如果找到了对应的 poolAddress，返回流动性数量
+    }
+
+    // 如果没有找到对应的 poolAddress，返回 0
+    return 0;
+  }
 
   // 更新或添加流动性信息的方法
   function updateLiquidityInfo(
@@ -773,7 +787,8 @@ export const SwapTokenContextProvider = ({ children }) => {
   // 从 localStorage 获取特定流动性池的流动性信息的方法
   function getLiquidityInfo(poolAddress) {
     // 从 localStorage 获取所有流动性池数据
-    const liquidityPools =      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+    const liquidityPools =
+      JSON.parse(localStorage.getItem("liquidityPools")) || {};
 
     // 返回特定 poolAddress 的流动性信息
     return liquidityPools[poolAddress] || null;
@@ -937,6 +952,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         getPrice,
         swapUpdatePrice,
         createPoolAndAddLiquidity,
+        getLiquidityForPool,
         getLiquidityInfo,
         account,
         networkConnect,
