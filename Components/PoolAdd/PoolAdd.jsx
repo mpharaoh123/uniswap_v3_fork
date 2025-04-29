@@ -14,21 +14,19 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
   const [active, setActive] = useState(1);
   const [openFee, setOpenFee] = useState(false);
-  const [rangeLower, setRangeLower] = useState(1);
+  const [rangeLower, setRangeLower] = useState(0);
   const [rangeUpper, setRangeUpper] = useState(0);
   // const [minPrice, setMinPrice] = useState(0);
   // const [maxPrice, setMaxPrice] = useState(0);
 
-  const [slippage, setSlippage] = useState(25);
-  const [deadline, setDeadline] = useState(10);
+  const [deadline, setDeadline] = useState(10); //默认10min
   const [tokenAmountOne, setTokenAmountOne] = useState(1);
   const [tokenAmountTwo, setTokenAmountTwo] = useState(1800);
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
-  const [currentPoolAddress, setCurrentPoolAddress] = useState(null); //todo token0 token1 fee 变化时 setCurrentPoolAddress
+  const [liquidityInfos, setLiquidityInfos] = useState({});
 
-  const { getLiquidityForPool, tokenData, getPrice } =
-    useContext(SwapTokenContext);
+  const { formatLiquidity, tokenData, getPrice } = useContext(SwapTokenContext);
 
   const [tokenOne, setTokenOne] = useState({
     name: "",
@@ -100,7 +98,14 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
         decimals: secondToken.decimals,
       });
     }
+    updateLiquidityInfo();
   }, [tokenData]);
+
+  const updateLiquidityInfo = () => {
+    const liquidityPools =
+      JSON.parse(localStorage.getItem("liquidityPools")) || {};
+    setLiquidityInfos(liquidityPools);
+  };
 
   // 输入框1的处理逻辑
   const handleTokenAmountOneChange = (e) => {
@@ -301,18 +306,40 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           </div>
           {/* RIGHT */}
           <div className={Style.PoolAdd_box_price_right}>
-            <h5>Set Range: Number of tick spacings range</h5>
             <div className={Style.PoolAdd_box_price_right_box}>
               <p className={Style.PoolAdd_box_price_right_box_para}></p>
               <Image src={images.wallet} alt="wallet" height={80} width={80} />
               {/* 显示流动性信息 */}
-              {currentPoolAddress && (
-                <div className={Style.PoolAdd_box_price_liquidity}>
-                  <p>Pool Address: {currentPoolAddress}</p>
-                  <p>Liquidity: {getLiquidityForPool(currentPoolAddress)}</p>
+              <div className={Style.PoolAdd_box_price_left_fee}>
+                <div>
+                  <p>
+                    {tokenOne.symbol}/{tokenTwo.symbol} liquidity
+                  </p>
+                  {Object.keys(liquidityInfos).length > 0 ? (
+                    <ul className={Style.liquidityList}>
+                      {Object.keys(liquidityInfos).map((poolAddress) =>
+                        liquidityInfos[poolAddress].token0 ===
+                          tokenOne.symbol &&
+                        liquidityInfos[poolAddress].token1 ===
+                          tokenTwo.symbol ? (
+                          <li key={poolAddress}>
+                            <div>
+                              <p>
+                                {formatLiquidity(
+                                  liquidityInfos[poolAddress].liquidity
+                                )}
+                              </p>
+                            </div>
+                          </li>
+                        ) : null
+                      )}
+                    </ul>
+                  ) : (
+                    <p>No liquidity positions found.</p>
+                  )}
                 </div>
-              )}
-              <h3>Your position will appear here.</h3>
+              </div>
+              <h5>Set Range: Number of tick spacings range</h5>
             </div>
 
             {/* //PRICE RANGE */}
@@ -361,12 +388,13 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     fee: fee,
                     amount0Desired: tokenAmountOne,
                     amount1Desired: tokenAmountTwo,
-                    slippage: slippage,
                     amount0Min: 0,
                     amount1Min: 0,
                     rangeLower: rangeLower,
                     rangeUpper: rangeUpper,
                     deadline: deadline,
+                  }).then(() => {
+                    updateLiquidityInfo();
                   });
                 }}
               >
@@ -380,8 +408,6 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
         <div className={Style.token}>
           <Token
             setOpenSetting={setOpenModel}
-            setSlippage={setSlippage}
-            slippage={slippage}
             deadline={deadline}
             setDeadline={setDeadline}
           />
@@ -404,7 +430,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
             openToken={setOpenTokenModelTwo}
             tokens={setTokenTwo}
             tokenData={tokenData}
-            defaultActiveIndex={10}
+            defaultActiveIndex={4}
           />
         </div>
       )}

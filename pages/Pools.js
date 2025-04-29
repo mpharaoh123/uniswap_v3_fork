@@ -10,7 +10,7 @@ const Pool = () => {
   const { account, createPoolAndAddLiquidity, tokenData } =
     useContext(SwapTokenContext);
 
-  const [closePool, setClosePool] = useState(false); //todo false
+  const [closePool, setClosePool] = useState(true); //todo false
 
   return (
     <div className={Style.Pool}>

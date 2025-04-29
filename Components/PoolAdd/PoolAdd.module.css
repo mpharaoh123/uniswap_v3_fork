@@ -61,15 +61,27 @@
   display: flex;
   align-items: center;
   line-height: 0;
-  padding: 0.5rem 1rem;
-  justify-content: space-between;
+  padding: 0.5rem 0.5rem;
+  justify-content: center; /* 修改为居中对齐 */
   border: 1px solid #cff80b;
   margin-top: 1rem;
   border-radius: 0.5rem;
+  flex-direction: column; /* 修改为列方向，确保内容垂直居中 */
+}
+
+.PoolAdd_box_price_left_fee h4 {
+  text-align: center; /* 标题居中 */
+  margin: 0.5 0 1rem; /* 添加一些间距 */
+  font-size: 1rem; /* 可以根据需要调整字体大小 */
 }
 
 .PoolAdd_box_price_left_fee p {
   font-size: 0.8rem;
+  text-align: center; /* 段落文字居中 */
+}
+
+.PoolAdd_box_price_left_fee p:first-of-type {
+  margin-bottom: 1.5rem; /* 为第一个 <p> 标签添加底部间距 */
 }
 
 .PoolAdd_box_price_left_fee button {
@@ -79,6 +91,18 @@
   border-radius: 0.5rem;
   cursor: pointer;
   font-weight: 700;
+}
+
+/* 新增的样式 */
+.PoolAdd_box_price_left_fee .liquidityList {
+  list-style: none; /* 去掉列表的默认样式 */
+  padding: 0;
+  margin: 0;
+  text-align: center; /* 列表内容居中 */
+}
+
+.PoolAdd_box_price_left_fee .liquidityList li {
+  margin: 0.25rem 0; /* 为列表项添加间距 */
 }
 
 .PoolAdd_box_price_left_list {
@@ -183,13 +207,14 @@
 
 .PoolAdd_box_price_right_box_para {
   font-size: 0.8rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: -1.5rem;
 }
 
 .PoolAdd_box_price_right_range {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
+  margin-top: 1rem; /* 添加顶部间距 */
 }
 
 .PoolAdd_box_price_right_range_box {
@@ -244,7 +269,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid #cff80b;
 }
 
 .PoolAdd_box_price_right_range_box_para {
@@ -279,6 +303,5 @@
     background-color: #1e1e1e;
     inset: 0% 0% 50% 0%;
     display: flex;
-    border: 1px solid #cff80b;
   }
 }

@@ -1,11 +1,13 @@
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 
 //INTERNAL IMPORT
 import images from "../../assets";
+import { SwapTokenContext } from "../../Context/SwapContext";
 import Style from "./PoolConnect.module.css";
 
 const PoolConnect = ({ setClosePool, account }) => {
+  const { formatLiquidity } = useContext(SwapTokenContext);
   const [liquidityInfos, setLiquidityInfos] = useState({});
 
   useEffect(() => {
@@ -13,12 +15,6 @@ const PoolConnect = ({ setClosePool, account }) => {
       JSON.parse(localStorage.getItem("liquidityPools")) || {};
     setLiquidityInfos(liquidityPools);
   }, []);
-
-  const formatLiquidity = (liquidity) => {
-    // 使用 toFixed(20) 格式化数值，并移除末尾的零
-    const formatted = parseFloat(liquidity).toFixed(20);
-    return formatted.replace(/0+$/, "").replace(/\.$/, ""); // 移除末尾的零和点
-  };
 
   return (
     <div className={Style.PoolConnect}>
@@ -44,7 +40,6 @@ const PoolConnect = ({ setClosePool, account }) => {
                 {Object.keys(liquidityInfos).map((poolAddress) => (
                   <li
                     key={poolAddress}
-                    className={Style.PoolConnect_box_liquidity_item}
                   >
                     <div>
                       <p>

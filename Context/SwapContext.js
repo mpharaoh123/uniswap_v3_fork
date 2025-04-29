@@ -427,7 +427,6 @@ export const SwapTokenContextProvider = ({ children }) => {
     fee,
     amount0Desired,
     amount1Desired,
-    slippage,
     amount0Min,
     amount1Min,
     rangeLower, //上偏移量
@@ -443,16 +442,14 @@ export const SwapTokenContextProvider = ({ children }) => {
       // console.log("fee:", fee);
       // console.log("amount0Desired:", amount0Desired);
       // console.log("amount1Desired:", amount1Desired);
-      // console.log("slippage:", slippage);
       // console.log("amount0Min:", amount0Min);
       // console.log("amount1Min:", amount1Min);
       console.log("rangeLower:", rangeLower);
       console.log("rangeUpper:", rangeUpper);
-      // console.log("deadline:", deadline);
+      console.log("deadline:", deadline);
 
       // console.log("amount0Desired:", !amount0Desired);
       // console.log("amount1Desired:", !amount1Desired);
-      // console.log("slippage:", !slippage);
       // console.log("amount0Min:", !Number.isFinite(Number(amount0Min)));
       // console.log("amount1Min:", !Number.isFinite(Number(amount1Min)));
       // console.log("deadline:", !deadline);
@@ -460,20 +457,19 @@ export const SwapTokenContextProvider = ({ children }) => {
       if (
         !token0.tokenAddress ||
         !token1.tokenAddress ||
+        (!isNaN(Number(fee)) && Number(fee) <= 0) ||
         !amount0Desired ||
         !amount1Desired ||
-        !slippage ||
         !Number.isFinite(Number(amount0Min)) || //判断是否是非数字或非字符串数字
         !Number.isFinite(Number(amount1Min)) ||
         !Number.isFinite(Number(rangeLower)) ||
-        Number(rangeLower) <= 0 ||
+        (!isNaN(Number(rangeLower)) && Number(rangeLower) <= 0) ||
         !Number.isFinite(Number(rangeUpper)) ||
-        Number(rangeUpper) <= 0 ||
-        !deadline ||
-        fee <= 0
+        (!isNaN(Number(rangeUpper)) && Number(rangeUpper) <= 0) ||
+        (!isNaN(Number(deadline)) && Number(deadline) <= 0)
       ) {
         console.log("return");
-        alert("illegal params");
+        alert("deposit amount, range and deadline can not be null");
         return;
       }
 
@@ -557,9 +553,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         UniswapV3Factory.abi,
         signer
       );
-
       // 创建pool或获取pool信息
-      const price = encodePriceSqrt(1, 1); //默认设置初始比例为 1:1 是一般适用于没有明确市场价的代币对
       let poolAddress = await factory.getPool(
         token0.tokenAddress,
         token1.tokenAddress,
@@ -574,6 +568,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         console.log("reverse token pair");
         tokens = [token1, token0];
       }
+      const price = encodePriceSqrt(1, 1); //默认设置初始比例为 1:1 是一般适用于没有明确市场价的代币对
       if (poolAddress === ethers.constants.AddressZero) {
         const transaction = await nonfungiblePositionManager
           .connect(signer)
@@ -727,16 +722,23 @@ export const SwapTokenContextProvider = ({ children }) => {
         addedLiquidity.toString()
       );
       console.log(`Added liquidity: ${formattedAddedLiquidity}`);
-      alert(`Added liquidity: ${formattedAddedLiquidity}`);
+      alert(`${formattedAddedLiquidity} liquidity has been added successfully`);
       updateLiquidityInfo(
         poolAddress,
         token0.symbol,
         token1.symbol,
+        fee,
         formattedAddedLiquidity
       );
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const formatLiquidity = (liquidity) => {
+    // 使用 toFixed(20) 格式化数值，并移除末尾的零
+    const formatted = parseFloat(liquidity).toFixed(20);
+    return formatted.replace(/0+$/, "").replace(/\.$/, ""); // 移除末尾的零和点
   };
 
   function getLiquidityForPool(poolAddress) {
@@ -747,11 +749,9 @@ export const SwapTokenContextProvider = ({ children }) => {
     // 直接通过 poolAddress 获取流动性信息
     const poolInfo = liquidityPools[poolAddress];
     if (poolInfo) {
-      return poolInfo.liquidity; // 如果找到了对应的 poolAddress，返回流动性数量
+      return poolInfo;
     }
-
-    // 如果没有找到对应的 poolAddress，返回 0
-    return 0;
+    return null;
   }
 
   // 更新或添加流动性信息的方法
@@ -759,6 +759,7 @@ export const SwapTokenContextProvider = ({ children }) => {
     poolAddress,
     token0,
     token1,
+    fee,
     formattedAddedLiquidity
   ) {
     // 从 localStorage 获取现有的流动性池数据
@@ -776,22 +777,12 @@ export const SwapTokenContextProvider = ({ children }) => {
       liquidityPools[poolAddress] = {
         token0,
         token1,
+        fee,
         liquidity: parseFloat(formattedAddedLiquidity),
       };
     }
-
     // 存储更新后的数据
     localStorage.setItem("liquidityPools", JSON.stringify(liquidityPools));
-  }
-
-  // 从 localStorage 获取特定流动性池的流动性信息的方法
-  function getLiquidityInfo(poolAddress) {
-    // 从 localStorage 获取所有流动性池数据
-    const liquidityPools =
-      JSON.parse(localStorage.getItem("liquidityPools")) || {};
-
-    // 返回特定 poolAddress 的流动性信息
-    return liquidityPools[poolAddress] || null;
   }
 
   //todo 根据minPrice, maxPrice计算tickLower和tickUpper；计算出来的不太对，且添加流动性的话流动性数量为0
@@ -952,8 +943,8 @@ export const SwapTokenContextProvider = ({ children }) => {
         getPrice,
         swapUpdatePrice,
         createPoolAndAddLiquidity,
+        formatLiquidity,
         getLiquidityForPool,
-        getLiquidityInfo,
         account,
         networkConnect,
         ether,
