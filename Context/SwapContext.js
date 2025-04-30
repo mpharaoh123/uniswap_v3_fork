@@ -17,6 +17,7 @@ import Web3 from "web3";
 import Web3Modal from "web3modal";
 import {
   ALCHEMY_URL,
+  ERC20_ABI,
   ETHERSCAN_API_KEY,
   FACTORY_ADDRESS,
   NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
@@ -54,19 +55,45 @@ export const SwapTokenContextProvider = ({ children }) => {
     }
   };
 
+  const fetchBalances = async (token) => {
+    try {
+      if (!account || !token) return;
+      const web3modal = new Web3Modal();
+      const connection = await web3modal.connect();
+      const provider = new ethers.providers.Web3Provider(connection);
+
+      let balance;
+      if (token.tokenAddress === WETH_ADDRESS) {
+        balance = await provider.getBalance(account);
+      } else {
+        const contract = new ethers.Contract(
+          token.tokenAddress,
+          ERC20_ABI,
+          provider
+        );
+        balance = await contract.balanceOf(account);
+      }
+      const formatBalance = ethers.utils.formatUnits(balance, token.decimals);
+      console.log(`${token.symbol} balance is ${formatBalance}`);
+      return formatBalance;
+    } catch (error) {
+      console.error("Error fetching balance:", error);
+    }
+    return null;
+  };
+
   //FETCH DATA
   const fetchingData = async () => {
     try {
       //GET USER ACCOUNT
-      const userAccount = await checkIfWalletConnected();
-      setAccount(userAccount);
-
+      await checkIfWalletConnected();
       //CREATE PROVIDER
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
+
       //CHECK Balance
-      const balance = await provider.getBalance(userAccount);
+      const balance = await provider.getBalance(account);
       const convertBal = BigNumber.from(balance).toString();
       const ethValue = ethers.utils.formatEther(convertBal);
       // console.log("ethValue", ethValue);
@@ -82,13 +109,14 @@ export const SwapTokenContextProvider = ({ children }) => {
       for (const el of poolData) {
         let convertTokenBal = "";
         if (el.symbol == "WETH") {
-          const balance = await provider.getBalance(userAccount);
+          const balance = await provider.getBalance(account);
           convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
         } else {
           const contract = new ethers.Contract(el.id, Erc20Abi.abi, provider);
-          const ercBalance = await contract.balanceOf(userAccount);
+          const ercBalance = await contract.balanceOf(account);
           convertTokenBal = ethers.utils.formatUnits(ercBalance, el.decimals);
         }
+        // console.log("convertTokenBal", convertTokenBal);
         const existingToken = fetchedTokenData.find(
           (token) => token.tokenAddress === el.id
         );
@@ -103,7 +131,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         }
       }
       setTokenData(fetchedTokenData);
-      console.log("tokenData", tokenData);
+      // console.log("tokenData", tokenData);
       setTopTokensList(poolData);
     } catch (error) {
       console.log(error);
@@ -200,7 +228,6 @@ export const SwapTokenContextProvider = ({ children }) => {
 
   //SINGL SWAP TOKEN
   const singleSwapToken = async ({
-    account,
     tokenIn,
     tokenOut,
     amountInNum,
@@ -217,6 +244,16 @@ export const SwapTokenContextProvider = ({ children }) => {
     //   deadline
     // );
     try {
+      if (
+        !account ||
+        !tokenIn ||
+        !tokenOut ||
+        !Number.isFinite(Number(amountInNum)) ||
+        Number(amountInNum) <= 0
+      ) {
+        alert("Please select both tokens and enter an amount.");
+      }
+      amountInNum = amountInNum.toString();
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
@@ -315,24 +352,28 @@ export const SwapTokenContextProvider = ({ children }) => {
       await swapTx.wait();
       console.log("Swap completed.");
 
-      const wethBalanceAfterSwap = await tokenInContract.balanceOf(account);
+      let tokenInBalanceAfterSwap = await tokenInContract.balanceOf(account);
+      tokenInBalanceAfterSwap = ethers.utils.formatUnits(
+        tokenInBalanceAfterSwap,
+        tokenIn.decimals
+      );
+      let tokenOutBalanceAfterSwap = await tokenOutContract.balanceOf(account);
+      tokenOutBalanceAfterSwap = ethers.utils.formatUnits(
+        tokenOutBalanceAfterSwap,
+        tokenOut.decimals
+      );
       console.log(
-        `${tokenIn.symbol} balance after swap: ${ethers.utils.formatUnits(
-          wethBalanceAfterSwap,
-          tokenIn.decimals
-        )} ${tokenIn.symbol}`
+        `${tokenIn.symbol} balance after swap: ${tokenInBalanceAfterSwap} ${tokenIn.symbol}`
+      );
+      console.log(
+        `${tokenOut.symbol} balance after swap: ${tokenOutBalanceAfterSwap} ${tokenOut.symbol}`
       );
 
-      const usdtBalanceAfterSwap = await tokenOutContract.balanceOf(account);
-      console.log(
-        `${tokenOut.symbol} balance after swap: ${ethers.utils.formatUnits(
-          usdtBalanceAfterSwap,
-          tokenOut.decimals
-        )} ${tokenOut.symbol}`
-      );
+      return { tokenInBalanceAfterSwap, tokenOutBalanceAfterSwap };
     } catch (error) {
       console.log(error);
     }
+    return {};
   };
 
   const getPrice = async (inputAmount, token0, token1, fee) => {
@@ -898,6 +939,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         method: "eth_accounts",
       });
       const firstAccount = accounts[0];
+      setAccount(firstAccount);
       return firstAccount;
     } catch (error) {
       console.log(error);
@@ -938,10 +980,11 @@ export const SwapTokenContextProvider = ({ children }) => {
   return (
     <SwapTokenContext.Provider
       value={{
-        singleSwapToken,
         connectWallet,
+        fetchBalances,
         getPrice,
         swapUpdatePrice,
+        singleSwapToken,
         createPoolAndAddLiquidity,
         formatLiquidity,
         getLiquidityForPool,

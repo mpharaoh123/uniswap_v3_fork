@@ -5,74 +5,78 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import images from "../../assets";
 import { SearchToken, Token } from "../index";
 import Style from "./HeroSection.module.css";
+import { poolData } from "../../Context/constants";
 
 // CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
 
 const HeroSection = ({}) => {
-  // USESTATE
   const [openSetting, setOpenSetting] = useState(false);
   const [openTokenOne, setOpenTokenOne] = useState(false);
   const [openTokensTwo, setOpenTokensTwo] = useState(false);
-
   const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
   const [poolMessage, setPoolMessage] = useState("");
   const [search, setSearch] = useState(false);
-  const [inputAmount, setInputAmount] = useState("100");
-  const [outputAmount, setOutPutAmount] = useState("");
+  const [inputAmount, setInputAmount] = useState("");
+  const [outputAmount, setOutputAmount] = useState("");
   const timeoutRef = useRef(null);
 
   const {
-    singleSwapToken,
     connectWallet,
     account,
     tokenData,
+    fetchBalances,
     getPrice,
     swapUpdatePrice,
+    singleSwapToken,
   } = useContext(SwapTokenContext);
 
+  const token0 = poolData[0];
+  const token1 = poolData[1];
   const [tokenOne, setTokenOne] = useState({
-    name: "",
+    name: token0.name,
     image: "",
-    symbol: "",
+    symbol: token0.symbol,
     tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
+    tokenAddress: token0.id,
+    decimals: token0.decimals,
   });
 
   const [tokenTwo, setTokenTwo] = useState({
-    name: "",
+    name: token1.name,
     image: "",
-    symbol: "",
+    symbol: token1.symbol,
     tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
+    tokenAddress: token1.id,
+    decimals: token1.decimals,
   });
+  const [tokenOneBalance, setTokenOneBalance] = useState("0");
+  const [tokenTwoBalance, setTokenTwoBalance] = useState("0");
 
-  useEffect(() => {
-    if (tokenData.length > 0) {
-      // console.log("hero section tokenData:", tokenData);
-      const firstToken = tokenData[1];
-      const secondToken = tokenData[2];
+  // useEffect(() => {
+  //   if (tokenData.length > 0) {
+  //     // console.log("hero section tokenData:", tokenData);
+  //     const firstToken = tokenData[1];
+  //     const secondToken = tokenData[2];
 
-      setTokenOne({
-        name: firstToken.name,
-        image: "",
-        symbol: firstToken.symbol,
-        tokenBalance: firstToken.tokenBalance,
-        tokenAddress: firstToken.tokenAddress,
-        decimals: firstToken.decimals,
-      });
-      setTokenTwo({
-        name: secondToken.name,
-        image: "",
-        symbol: secondToken.symbol,
-        tokenBalance: secondToken.tokenBalance,
-        tokenAddress: secondToken.tokenAddress,
-        decimals: secondToken.decimals,
-      });
-    }
-  }, [tokenData]);
+  //     setTokenOne({
+  //       name: firstToken.name,
+  //       image: "",
+  //       symbol: firstToken.symbol,
+  //       // tokenBalance: firstToken.tokenBalance,
+  //       tokenAddress: firstToken.tokenAddress,
+  //       decimals: firstToken.decimals,
+  //     });
+  //     setTokenTwo({
+  //       name: secondToken.name,
+  //       image: "",
+  //       symbol: secondToken.symbol,
+  //       // tokenBalance: secondToken.tokenBalance,
+  //       tokenAddress: secondToken.tokenAddress,
+  //       decimals: secondToken.decimals,
+  //     });
+  //   }
+  // }, [tokenData]);
 
   useEffect(() => {
     // 清除之前的定时器，避免重复调用
@@ -104,6 +108,17 @@ const HeroSection = ({}) => {
     };
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      const balance0 = await fetchBalances(tokenOne);
+      console.log("balance1", balance0);
+      setTokenOneBalance(balance0);
+      const balance1 = await fetchBalances(tokenTwo);
+      console.log("balance1", balance1);
+      setTokenTwoBalance(balance1);
+    })();
+  }, [account, tokenOne, tokenTwo]);
+
   const callOutPut = async (inputAmount) => {
     const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
     const slippageAmount = 25;
@@ -121,14 +136,9 @@ const HeroSection = ({}) => {
     setTokenSwapOutPut(Number(data[1]).toFixed(6));
     setSearch(false);
 
-    const outputAmount = await getPrice(
-      inputAmount,
-      tokenOne,
-      tokenTwo,
-      3000
-    ); // todo 传fee
+    const outputAmount = await getPrice(inputAmount, tokenOne, tokenTwo, 3000); // todo 传fee
     console.log("outputAmount", outputAmount);
-    setOutPutAmount(outputAmount);
+    setOutputAmount(outputAmount);
     const message = `${inputAmount} ${tokenOne.symbol} = ${Number(
       outputAmount
     ).toFixed(6)} ${tokenTwo.symbol}`;
@@ -156,7 +166,7 @@ const HeroSection = ({}) => {
           <input
             type="number"
             placeholder="0"
-            value={inputAmount.toString()} // 添加 value 属性以绑定输入值
+            value={inputAmount} // 添加 value 属性以绑定输入值
             onChange={(e) => {
               const value = e.target.value;
               setInputAmount(value ? parseFloat(value) : ""); // 更新 inputAmount
@@ -169,8 +179,11 @@ const HeroSection = ({}) => {
               height={20}
               alt="ether"
             />
-            {tokenOne.symbol || "ETH"}
-            <small>{parseFloat(tokenOne.tokenBalance).toFixed(2)}</small>
+            {tokenOne.symbol}
+            <small>
+              {/* {parseFloat(tokenOne.tokenBalance).toFixed(2)} */}
+              {parseFloat(tokenOneBalance).toFixed(2)}
+            </small>
           </button>
         </div>
 
@@ -195,8 +208,11 @@ const HeroSection = ({}) => {
               height={20}
               alt="ether"
             />
-            {tokenTwo.symbol || "ETH"}
-            <small>{parseFloat(tokenTwo.tokenBalance).toFixed(2)}</small>
+            {tokenTwo.symbol}
+            <small>
+              {/* {parseFloat(tokenTwo.tokenBalance).toFixed(2)} */}
+              {parseFloat(tokenTwoBalance).toFixed(2)}
+            </small>
           </button>
         </div>
 
@@ -207,23 +223,18 @@ const HeroSection = ({}) => {
         )}
 
         {account ? (
-          // 确保在调用 singleSwapToken 之前，tokenOne、tokenTwo 和 inputAmount 已经被正确设置
           <button
             className={Style.HeroSection_box_btn}
-            onClick={() => {
-              if (tokenOne.symbol && tokenTwo.symbol && inputAmount) {
-                singleSwapToken({
-                  account,
-                  tokenIn: tokenOne,
-                  tokenOut: tokenTwo,
-                  amountInNum: inputAmount.toString(),
-                  slippage: 0.01,
-                  deadline: Math.floor(Date.now() / 1000) + 600,
-                });
-                //todo swap后更新tokenOne和tokenTwo余额
-              } else {
-                alert("Please select both tokens and enter an amount.");
-              }
+            onClick={async () => {
+              const result = await singleSwapToken({
+                tokenIn: tokenOne,
+                tokenOut: tokenTwo,
+                amountInNum: inputAmount,
+                slippage: 0.01,
+                deadline: Math.floor(Date.now() / 1000) + 600,
+              });
+              setInputAmount(result.tokenInBalanceAfterSwap);
+              setOutputAmount(result.tokenOutBalanceAfterSwap);
             }}
           >
             Swap

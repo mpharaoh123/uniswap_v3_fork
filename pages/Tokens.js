@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
+import React, { useEffect, useState } from "react";
 
 //INTERNAL IMPORT
-import Style from "../styles/Tokens.module.css";
 import images from "../assets";
 import { AllTokens } from "../Components/index";
+import Style from "../styles/Tokens.module.css";
 //CONTEXT
-import { SwapTokenContext } from "../Context/SwapContext";
 const Tokens = () => {
   const [allTokenList, setAllTokenList] = useState([
     {
@@ -55,7 +54,6 @@ const Tokens = () => {
     },
   ]);
 
-  const { topTokensList, getTop10Tokens } = useContext(SwapTokenContext);
   const [copyAllTokenList, setCopyAllTokenList] = useState(allTokenList);
   const [search, setSearch] = useState("");
   const [searchItem, setSearchItem] = useState(search);
