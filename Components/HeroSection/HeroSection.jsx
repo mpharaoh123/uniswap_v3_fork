@@ -24,7 +24,6 @@ const HeroSection = ({}) => {
   const {
     connectWallet,
     account,
-    tokenData,
     fetchBalances,
     getPrice,
     swapUpdatePrice,
@@ -37,7 +36,6 @@ const HeroSection = ({}) => {
     name: token0.name,
     image: "",
     symbol: token0.symbol,
-    tokenBalance: "",
     tokenAddress: token0.id,
     decimals: token0.decimals,
   });
@@ -46,37 +44,11 @@ const HeroSection = ({}) => {
     name: token1.name,
     image: "",
     symbol: token1.symbol,
-    tokenBalance: "",
     tokenAddress: token1.id,
     decimals: token1.decimals,
   });
   const [tokenOneBalance, setTokenOneBalance] = useState("0");
   const [tokenTwoBalance, setTokenTwoBalance] = useState("0");
-
-  // useEffect(() => {
-  //   if (tokenData.length > 0) {
-  //     // console.log("hero section tokenData:", tokenData);
-  //     const firstToken = tokenData[1];
-  //     const secondToken = tokenData[2];
-
-  //     setTokenOne({
-  //       name: firstToken.name,
-  //       image: "",
-  //       symbol: firstToken.symbol,
-  //       // tokenBalance: firstToken.tokenBalance,
-  //       tokenAddress: firstToken.tokenAddress,
-  //       decimals: firstToken.decimals,
-  //     });
-  //     setTokenTwo({
-  //       name: secondToken.name,
-  //       image: "",
-  //       symbol: secondToken.symbol,
-  //       // tokenBalance: secondToken.tokenBalance,
-  //       tokenAddress: secondToken.tokenAddress,
-  //       decimals: secondToken.decimals,
-  //     });
-  //   }
-  // }, [tokenData]);
 
   useEffect(() => {
     // 清除之前的定时器，避免重复调用
@@ -258,7 +230,6 @@ const HeroSection = ({}) => {
             setTokenOne(token); // 更新 tokenOne
             console.log(`Selected Token1:`, token);
           }}
-          tokenData={tokenData}
         />
       )}
       {openTokensTwo && (
@@ -268,7 +239,6 @@ const HeroSection = ({}) => {
             setTokenTwo(token); // 更新 tokenTwo
             console.log(`Selected Token2:`, token);
           }}
-          tokenData={tokenData}
         />
       )}
     </div>

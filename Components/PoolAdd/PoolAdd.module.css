@@ -32,6 +32,7 @@
 .PoolAdd_box_price_left_token_info {
   display: flex;
   align-items: center;
+  justify-content: center; /* 水平居中 */
   gap: 1rem;
   background-color: #cff80b;
   border-radius: 0.5rem;
@@ -60,9 +61,9 @@
 .PoolAdd_box_price_left_fee {
   display: flex;
   align-items: center;
+  justify-content: center; /* 修改为居中对齐 */
   line-height: 0;
   padding: 0.5rem 0.5rem;
-  justify-content: center; /* 修改为居中对齐 */
   border: 1px solid #cff80b;
   margin-top: 1rem;
   border-radius: 0.5rem;
@@ -207,7 +208,7 @@
 
 .PoolAdd_box_price_right_box_para {
   font-size: 0.8rem;
-  margin-bottom: -1.5rem;
+  margin-bottom: 1.4rem;
 }
 
 .PoolAdd_box_price_right_range {

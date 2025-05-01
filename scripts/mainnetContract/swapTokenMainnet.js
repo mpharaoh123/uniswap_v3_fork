@@ -6,8 +6,6 @@ const {
   WETH_ABI,
   ERC20_ABI,
   tokenListMainnet,
-  QUOTER_ADDRESS,
-  QUOTER_ABI,
 } = require("../constants/constants");
 
 /*

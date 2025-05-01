@@ -1,12 +1,12 @@
-import React, { useState } from "react";
 import Image from "next/image";
+import React, { useState } from "react";
 
 //INTERNAL IMPORT
-import Style from "./SearchToken.module.css";
 import images from "../../assets";
+import { poolData } from "../../Context/constants";
+import Style from "./SearchToken.module.css";
 
-const SearchToken = ({ openToken, tokens, tokenData, defaultActiveIndex }) => {
-  //USESTATE
+const SearchToken = ({ openToken, tokens, defaultActiveIndex }) => {
   const [active, setActive] = useState(defaultActiveIndex || 1);
 
   return (
@@ -31,7 +31,7 @@ const SearchToken = ({ openToken, tokens, tokenData, defaultActiveIndex }) => {
         </div>
 
         <div className={Style.SearchToken_box_tokens}>
-          {tokenData.map((el, i) => (
+          {poolData.map((el, i) => (
             <span
               key={i + 1}
               className={active == i + 1 ? `${Style.active}` : ""}
@@ -41,8 +41,7 @@ const SearchToken = ({ openToken, tokens, tokenData, defaultActiveIndex }) => {
                   name: el.name,
                   image: el.img,
                   symbol: el.symbol,
-                  tokenBalance: el.tokenBalance,
-                  tokenAddress: el.tokenAddress,
+                  tokenAddress: el.id,
                   decimals: el.decimals,
                 }),
                 openToken(false)

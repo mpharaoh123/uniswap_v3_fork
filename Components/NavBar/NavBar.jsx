@@ -1,17 +1,17 @@
-import React, { useState, useEffect, useContext } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import React, { useContext, useEffect, useState } from "react";
 
 //IMPORT INTERNAL
-import Style from "./NavBar.module.css";
 import images from "../../assets";
 import { Model, TokenList } from "../index";
+import Style from "./NavBar.module.css";
 
 //CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
 
 const NavBar = () => {
-  const { ether, account, networkConnect, connectWallet, tokenData } =
+  const { account, networkConnect, connectWallet } =
     useContext(SwapTokenContext);
   const menuItems = [
     {
@@ -30,10 +30,6 @@ const NavBar = () => {
   //USESTATE
   const [openModel, setOpenModel] = useState(false);
   const [openTokenBox, setOpenTokenBox] = useState(false);
-
-  useEffect(() => {
-    // console.log("navbar Token Data:", tokenData);
-  }, []); 
 
   return (
     <div className={Style.NavBar}>
@@ -73,7 +69,7 @@ const NavBar = () => {
           </div>
           {account ? (
             <button onClick={() => setOpenTokenBox(true)}>
-              {account.slice(0, 7) + '...' + account.slice(-5)}
+              {account.slice(0, 7) + "..." + account.slice(-5)}
             </button>
           ) : (
             <button onClick={() => setOpenModel(true)}>Connect</button>
@@ -86,9 +82,7 @@ const NavBar = () => {
       </div>
 
       {/* //TOTENLIST COMPONENT */}
-      {openTokenBox && (
-        <TokenList tokenDate={tokenData} setOpenTokenBox={setOpenTokenBox} />
-      )}
+      {openTokenBox && <TokenList setOpenTokenBox={setOpenTokenBox} />}
     </div>
   );
 };

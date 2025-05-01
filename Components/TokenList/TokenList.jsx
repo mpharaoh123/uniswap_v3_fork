@@ -1,21 +1,11 @@
 import Image from "next/image";
-import React, { useEffect } from "react";
+import React from "react";
 
 //INTERNAL IMPORT
 import images from "../../assets";
 import Style from "./TokenList.module.css";
 
-const TokenList = ({ tokenDate, setOpenTokenBox }) => {
-  // const { tokenData } = useContext(SwapTokenContext);
-  // let tokenList = [];
-  /*   for (let i = 0; i < tokenDate.length; i++) {
-    if (i % 2 == 1) tokenList.push(tokenDate[i]);
-  } */
-
-  useEffect(() => {
-    // console.log("tokenlist Token Data:", tokenDate);
-  }, [tokenDate]);
-
+const TokenList = ({ setOpenTokenBox }) => {
   return (
     <div className={Style.TokenList}>
       <p

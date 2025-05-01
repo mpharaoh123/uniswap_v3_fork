@@ -21,7 +21,6 @@ import {
   ETHERSCAN_API_KEY,
   FACTORY_ADDRESS,
   NON_FUNGABLE_POSITION_MANAGER_ADDRESS,
-  poolData,
   V3_SWAP_QUOTER_ADDRESS,
   V3_SWAP_ROUTER_ADDRESS,
   WETH_ABI,
@@ -35,25 +34,7 @@ export const SwapTokenContextProvider = ({ children }) => {
   //USSTATE
   const [account, setAccount] = useState("");
   const [signer, setSigner] = useState("");
-  const [ether, setEther] = useState("");
   const [networkConnect, setNetworkConnect] = useState("");
-
-  const [tokenData, setTokenData] = useState([]);
-  //TOP TOKENS
-  const [topTokensList, setTopTokensList] = useState([]);
-
-  // todo 获取不到signer
-  const fetchSinger = async () => {
-    try {
-      const web3modal = new Web3Modal();
-      const connection = await web3modal.connect();
-      const provider = new ethers.providers.Web3Provider(connection);
-      const signer = provider.getSigner();
-      setSigner(signer);
-    } catch (error) {
-      console.log(error);
-    }
-  };
 
   const fetchBalances = async (token) => {
     try {
@@ -91,55 +72,15 @@ export const SwapTokenContextProvider = ({ children }) => {
       const web3modal = new Web3Modal();
       const connection = await web3modal.connect();
       const provider = new ethers.providers.Web3Provider(connection);
-
-      //CHECK Balance
-      const balance = await provider.getBalance(account);
-      const convertBal = BigNumber.from(balance).toString();
-      const ethValue = ethers.utils.formatEther(convertBal);
-      // console.log("ethValue", ethValue);
-      setEther(ethValue);
-
       //GET NETWORK
       const network = await provider.getNetwork();
       setNetworkConnect(network.name);
-
-      //ALL TOKEN BALANCE AND DATA
-      const fetchedTokenData = [];
-      // console.log("poolData", poolData);
-      for (const el of poolData) {
-        let convertTokenBal = "";
-        if (el.symbol == "WETH") {
-          const balance = await provider.getBalance(account);
-          convertTokenBal = ethers.utils.formatUnits(balance, el.decimals);
-        } else {
-          const contract = new ethers.Contract(el.id, Erc20Abi.abi, provider);
-          const ercBalance = await contract.balanceOf(account);
-          convertTokenBal = ethers.utils.formatUnits(ercBalance, el.decimals);
-        }
-        // console.log("convertTokenBal", convertTokenBal);
-        const existingToken = fetchedTokenData.find(
-          (token) => token.tokenAddress === el.id
-        );
-        if (!existingToken) {
-          fetchedTokenData.push({
-            name: el.name,
-            symbol: el.symbol,
-            tokenBalance: convertTokenBal,
-            tokenAddress: el.id,
-            decimals: parseInt(el.decimals),
-          });
-        }
-      }
-      setTokenData(fetchedTokenData);
-      // console.log("tokenData", tokenData);
-      setTopTokensList(poolData);
     } catch (error) {
       console.log(error);
     }
   };
 
   useEffect(() => {
-    fetchSinger();
     fetchingData();
   }, []);
 
@@ -154,21 +95,23 @@ export const SwapTokenContextProvider = ({ children }) => {
     const chainId = 1;
     const provider = new ethers.providers.JsonRpcProvider(
       // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
-      // "127.0.0.1:8545",
       ALCHEMY_URL
     );
+
+    console.log(111, tokenOne);
+    console.log(222, tokenTwo);
 
     const tokenOneInit = new Token(
       chainId,
       tokenOne.tokenAddress,
-      tokenOne.decimals,
+      Number(tokenOne.decimals),
       tokenOne.symbol,
       tokenOne.name
     );
     const tokenTwoInit = new Token(
       chainId,
       tokenTwo.tokenAddress,
-      tokenTwo.decimals,
+      Number(tokenTwo.decimals),
       tokenTwo.symbol,
       tokenTwo.name
     );
@@ -990,9 +933,6 @@ export const SwapTokenContextProvider = ({ children }) => {
         getLiquidityForPool,
         account,
         networkConnect,
-        ether,
-        tokenData,
-        topTokensList,
       }}
     >
       {children}

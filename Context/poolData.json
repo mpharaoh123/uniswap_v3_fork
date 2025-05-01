@@ -72,20 +72,6 @@
     },
     {
       "decimals": "18",
-      "feesUSD": "1438654.402788493905526099840488641",
-      "id": "0x4c9edd5852cd905f086c759e8383e09bff1e68b3",
-      "name": "USDe",
-      "poolCount": "0",
-      "symbol": "USDe",
-      "totalSupply": "28368",
-      "totalValueLocked": "1440930.919907900617817337",
-      "totalValueLockedUSD": "1440574.678033928291936115052827054",
-      "txCount": "190822",
-      "volume": "14385698697.609853683366264278",
-      "volumeUSD": "14386544027.88493905526099840488641"
-    },
-    {
-      "decimals": "18",
       "feesUSD": "39380448.59811273575311468260608683",
       "id": "0x514910771af9ca656af840dff83e8264ecf986ca",
       "name": "ChainLink Token",

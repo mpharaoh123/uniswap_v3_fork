@@ -6,8 +6,8 @@ import images from "../../assets";
 import { SwapTokenContext } from "../../Context/SwapContext";
 import Style from "./PoolConnect.module.css";
 
-const PoolConnect = ({ setClosePool, account }) => {
-  const { formatLiquidity } = useContext(SwapTokenContext);
+const PoolConnect = ({ setClosePool }) => {
+  const { account, formatLiquidity } = useContext(SwapTokenContext);
   const [liquidityInfos, setLiquidityInfos] = useState({});
 
   useEffect(() => {
@@ -38,9 +38,7 @@ const PoolConnect = ({ setClosePool, account }) => {
             {Object.keys(liquidityInfos).length > 0 ? (
               <ul className={Style.PoolConnect_box_liquidity_list}>
                 {Object.keys(liquidityInfos).map((poolAddress) => (
-                  <li
-                    key={poolAddress}
-                  >
+                  <li key={poolAddress}>
                     <div>
                       <p>
                         Pair {liquidityInfos[poolAddress].token0}/

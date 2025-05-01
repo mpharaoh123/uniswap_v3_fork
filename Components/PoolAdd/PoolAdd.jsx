@@ -4,6 +4,7 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 // INTERNAL IMPORT
 import images from "../../assets";
 import { SearchToken, Token } from "../../Components/index.js";
+import { poolData } from "../../Context/constants";
 import Style from "./PoolAdd.module.css";
 
 import { SwapTokenContext } from "../../Context/SwapContext";
@@ -26,25 +27,28 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
   const [liquidityInfos, setLiquidityInfos] = useState({});
 
-  const { formatLiquidity, tokenData, getPrice } = useContext(SwapTokenContext);
+  const { account, formatLiquidity, getPrice, fetchBalances } =
+    useContext(SwapTokenContext);
 
+  const token0 = poolData[0];
+  const token1 = poolData[1];
   const [tokenOne, setTokenOne] = useState({
-    name: "",
+    name: token0.name,
     image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
+    symbol: token0.symbol,
+    tokenAddress: token0.id,
+    decimals: token0.decimals,
   });
 
   const [tokenTwo, setTokenTwo] = useState({
-    name: "",
+    name: token1.name,
     image: "",
-    symbol: "",
-    tokenBalance: "",
-    tokenAddress: "",
-    decimals: "",
+    symbol: token1.symbol,
+    tokenAddress: token1.id,
+    decimals: token1.decimals,
   });
+  const [tokenOneBalance, setTokenOneBalance] = useState("0");
+  const [tokenTwoBalance, setTokenTwoBalance] = useState("0");
 
   const feePairs = [
     {
@@ -75,31 +79,19 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [fee, setFee] = useState(feePairs[0].feeSystem);
 
   useEffect(() => {
-    console.log("tokenData", tokenData);
-    if (tokenData.length > 0) {
-      // console.log("hero section tokenData:", tokenData);
-      const firstToken = tokenData[0];
-      const secondToken = tokenData[1];
-
-      setTokenOne({
-        name: firstToken.name,
-        image: "",
-        symbol: firstToken.symbol,
-        tokenBalance: firstToken.tokenBalance,
-        tokenAddress: firstToken.tokenAddress,
-        decimals: firstToken.decimals,
-      });
-      setTokenTwo({
-        name: secondToken.name,
-        image: "",
-        symbol: secondToken.symbol,
-        tokenBalance: secondToken.tokenBalance,
-        tokenAddress: secondToken.tokenAddress,
-        decimals: secondToken.decimals,
-      });
-    }
     updateLiquidityInfo();
-  }, [tokenData]);
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const balance0 = await fetchBalances(tokenOne);
+      console.log("balance1", balance0);
+      setTokenOneBalance(balance0);
+      const balance1 = await fetchBalances(tokenTwo);
+      console.log("balance1", balance1);
+      setTokenTwoBalance(balance1);
+    })();
+  }, [account, tokenOne, tokenTwo]);
 
   const updateLiquidityInfo = () => {
     const liquidityPools =
@@ -152,15 +144,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               onClick={() => setClosePool(false)}
             />
           </div>
-          <div className={Style.PoolAdd_box_header_middle}>
-            <p>Add Liquidity</p>
-          </div>
           <div className={Style.PoolAdd_box_header_right}>
-            <p>
-              {tokenOne.name || ""} {tokenOne.tokenBalance.slice(0, 9) || ""}
-              <br />
-              {tokenTwo.name || ""} {tokenTwo.tokenBalance.slice(0, 9) || ""}
-            </p>
             <Image
               src={images.close}
               alt="image"
@@ -189,8 +173,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     height={20}
                   />
                 </p>
-                <p>{tokenOne.name || "ETH"}</p>
-                <p>🡫</p>
+                <p>{tokenOne.symbol || "ETH"}</p>
               </div>
               <div
                 className={Style.PoolAdd_box_price_left_token_info}
@@ -204,8 +187,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     height={20}
                   />
                 </p>
-                <p>{tokenTwo.name || "Select"}</p>
-                <p>🡫</p>
+                <p>{tokenTwo.symbol || "Select"}</p>
               </div>
             </div>
             {/* //FEE */}
@@ -266,7 +248,9 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               <div className={Style.PoolAdd_box_deposit_box}>
                 <input
                   type="number"
-                  placeholder={tokenOne.tokenBalance.slice(0, 9)}
+                  placeholder={
+                    tokenOneBalance ? tokenOneBalance.slice(0, 9) : ""
+                  }
                   value={tokenAmountOne}
                   onChange={handleTokenAmountOneChange} // 使用防抖逻辑
                 />
@@ -286,7 +270,9 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               <div className={Style.PoolAdd_box_deposit_box}>
                 <input
                   type="number"
-                  placeholder={tokenTwo.tokenBalance.slice(0, 9)}
+                  placeholder={
+                    tokenTwoBalance ? tokenTwoBalance.slice(0, 9) : ""
+                  }
                   value={tokenAmountTwo}
                   onChange={handleTokenAmountTwoChange} // 使用防抖逻辑
                 />
@@ -312,9 +298,6 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               {/* 显示流动性信息 */}
               <div className={Style.PoolAdd_box_price_left_fee}>
                 <div>
-                  <p>
-                    {tokenOne.symbol}/{tokenTwo.symbol} liquidity
-                  </p>
                   {Object.keys(liquidityInfos).length > 0 ? (
                     <ul className={Style.liquidityList}>
                       {Object.keys(liquidityInfos).map((poolAddress) =>
@@ -325,17 +308,24 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                           <li key={poolAddress}>
                             <div>
                               <p>
+                                {tokenOne.symbol}/{tokenTwo.symbol} liquidity
+                                amount is{" "}
                                 {formatLiquidity(
                                   liquidityInfos[poolAddress].liquidity
                                 )}
                               </p>
                             </div>
                           </li>
-                        ) : null
+                        ) : (
+                          <p>
+                            No liquidity amount has been found for the current
+                            trade.
+                          </p>
+                        )
                       )}
                     </ul>
                   ) : (
-                    <p>No liquidity positions found.</p>
+                    <p>No liquidity info.</p>
                   )}
                 </div>
               </div>
@@ -356,7 +346,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                   onChange={(e) => setRangeLower(e.target.value)}
                 />
                 <p>
-                  {/* {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"} */}
+                  {/* {tokenOne.symbol || "ETH"} per {tokenTwo.symbol || "Select"} */}
                   Number of tick spacings below the current tick
                 </p>
               </div>
@@ -372,7 +362,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                   onChange={(e) => setRangeUpper(e.target.value)}
                 />
                 <p>
-                  {/* {tokenOne.name || "ETH"} per {tokenTwo.name || "Select"} */}
+                  {/* {tokenOne.symbol || "ETH"} per {tokenTwo.symbol || "Select"} */}
                   Number of tick spacings above the current tick
                 </p>
               </div>
@@ -418,7 +408,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           <SearchToken
             openToken={setOpenTokenModelOne}
             tokens={setTokenOne}
-            tokenData={tokenData}
+            poolData={poolData}
             defaultActiveIndex={3}
           />
         </div>
@@ -429,7 +419,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
           <SearchToken
             openToken={setOpenTokenModelTwo}
             tokens={setTokenTwo}
-            tokenData={tokenData}
+            poolData={poolData}
             defaultActiveIndex={4}
           />
         </div>
