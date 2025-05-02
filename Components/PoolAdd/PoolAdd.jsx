@@ -151,6 +151,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               width={50}
               height={50}
               onClick={() => setOpenModel(true)}
+              style={{ cursor: "pointer" }}
             />
           </div>
         </div>

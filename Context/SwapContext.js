@@ -88,18 +88,16 @@ export const SwapTokenContextProvider = ({ children }) => {
     tokenOne,
     tokenTwo,
     inputAmount,
-    slippageAmount,
+    slippage,
     deadline,
-    walletAddress
+    account
   ) => {
+
     const chainId = 1;
     const provider = new ethers.providers.JsonRpcProvider(
       // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
       ALCHEMY_URL
     );
-
-    console.log(111, tokenOne);
-    console.log(222, tokenTwo);
 
     const tokenOneInit = new Token(
       chainId,
@@ -116,7 +114,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       tokenTwo.name
     );
 
-    const percentSlippage = new Percent(slippageAmount, 100);
+    const percentSlippage = new Percent(Math.round(slippage * 100), 100);
     const tokenOneWei = ethers.utils.parseUnits(
       inputAmount.toString(),
       tokenOne.decimals
@@ -133,9 +131,9 @@ export const SwapTokenContextProvider = ({ children }) => {
       tokenTwoInit,
       TradeType.EXACT_INPUT,
       {
-        recipient: walletAddress,
+        recipient: account,
         slippageTolerance: percentSlippage,
-        deadline: deadline,
+        deadline: Math.floor(Date.now() / 1000) + deadline * 60,
       }
     );
 
@@ -143,7 +141,7 @@ export const SwapTokenContextProvider = ({ children }) => {
       data: route.methodParameters.calldata,
       to: V3_SWAP_ROUTER_ADDRESS,
       value: BigNumber.from(route.methodParameters.value),
-      from: walletAddress,
+      from: account,
       gasPrice: BigNumber.from(route.gasPriceWei),
       gasLimit: ethers.utils.hexlify(1000000),
     };
@@ -195,6 +193,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         Number(amountInNum) <= 0
       ) {
         alert("Please select both tokens and enter an amount.");
+        return;
       }
       amountInNum = amountInNum.toString();
       const web3modal = new Web3Modal();
@@ -420,24 +419,6 @@ export const SwapTokenContextProvider = ({ children }) => {
     deadline,
   }) => {
     try {
-      // console.log("liquidity");
-      // console.log("token0:", token0);
-      // console.log("token1:", token1);
-      // console.log("fee:", fee);
-      // console.log("amount0Desired:", amount0Desired);
-      // console.log("amount1Desired:", amount1Desired);
-      // console.log("amount0Min:", amount0Min);
-      // console.log("amount1Min:", amount1Min);
-      console.log("rangeLower:", rangeLower);
-      console.log("rangeUpper:", rangeUpper);
-      console.log("deadline:", deadline);
-
-      // console.log("amount0Desired:", !amount0Desired);
-      // console.log("amount1Desired:", !amount1Desired);
-      // console.log("amount0Min:", !Number.isFinite(Number(amount0Min)));
-      // console.log("amount1Min:", !Number.isFinite(Number(amount1Min)));
-      // console.log("deadline:", !deadline);
-
       if (
         !token0.tokenAddress ||
         !token1.tokenAddress ||

@@ -73,6 +73,10 @@
     line-height: 0;
 }
 
+.PoolConnect_box_liquidity p {
+    text-indent: 2em; /* 首行缩进2em，大约相当于4个空格 */
+  }
+
 .mark{
   background-color: #CFF80B;
   color: #1E1E1E;

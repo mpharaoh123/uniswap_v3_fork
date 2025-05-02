@@ -4,7 +4,7 @@ import React, { useContext, useEffect, useState } from "react";
 
 //IMPORT INTERNAL
 import images from "../../assets";
-import { Model, TokenList } from "../index";
+import { Model } from "../index";
 import Style from "./NavBar.module.css";
 
 //CONTEXT
@@ -49,16 +49,6 @@ const NavBar = () => {
             ))}
           </div>
         </div>
-        {/* //Middle SECTION */}
-        <div className={Style.NavBar_box_middle}>
-          <div className={Style.NavBar_box_middle_search}>
-            <div className={Style.NavBar_box_middle_search_img}>
-              <Image src={images.search} alt="search" width={20} height={20} />
-            </div>
-            {/* //INPUT SECTION */}
-            <input type="text" placeholder="Search Tokens" />
-          </div>
-        </div>
         {/* //RIGHT SECTION */}
         <div className={Style.NavBar_box_right}>
           <div className={Style.NavBar_box_right_box}>
@@ -80,9 +70,6 @@ const NavBar = () => {
           )}
         </div>
       </div>
-
-      {/* //TOTENLIST COMPONENT */}
-      {openTokenBox && <TokenList setOpenTokenBox={setOpenTokenBox} />}
     </div>
   );
 };

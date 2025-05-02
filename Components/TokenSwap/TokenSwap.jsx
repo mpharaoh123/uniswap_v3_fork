@@ -3,9 +3,15 @@ import React from "react";
 
 //IMPORT INTERNAL
 import images from "../../assets";
-import Style from "./Token.module.css";
+import Style from "./TokenSwap.module.css";
 
-const Token = ({ setOpenSetting, deadline, setDeadline }) => {
+const TokenSwap = ({
+  setOpenSetting,
+  slippage,
+  setSlippage,
+  deadline,
+  setDeadline,
+}) => {
   return (
     <div className={Style.Token}>
       <div className={Style.Token_box}>
@@ -20,20 +26,34 @@ const Token = ({ setOpenSetting, deadline, setDeadline }) => {
             style={{ cursor: "pointer" }}
           />
         </div>
+        <p className={Style.Token_box_para}>Slippage tolerance{""}</p>
 
         <div className={Style.Token_box_input}>
-          <span className={Style.Token_box_input_label}>Deadline Time</span>
+          <button onClick={() => setSlippage(0.05)}>Auto</button>
+          <input
+            type="text"
+            value={slippage}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value > 1) alert("Value cannot exceed 1.");
+              else setSlippage(e.target.value);
+            }}
+          />
+        </div>
+
+        <p className={Style.Token_box_para}>Deadline Time{""}</p>
+
+        <div className={Style.Token_box_input}>
           <input
             type="text"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className={Style.Token_box_input_field}
           />
-          <button className={Style.Token_box_input_button}>minutes</button>
+          <div>minutes</div>
         </div>
       </div>
     </div>
   );
 };
 
-export default Token;
+export default TokenSwap;

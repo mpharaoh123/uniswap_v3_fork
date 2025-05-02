@@ -20,6 +20,7 @@ const Model = ({ setOpenModel, connectWallet }) => {
               width={50}
               height={50}
               onClick={() => setOpenModel(false)}
+              style={{ cursor: "pointer" }}
             />
           </div>
         </div>

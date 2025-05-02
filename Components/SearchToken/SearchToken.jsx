@@ -17,9 +17,10 @@ const SearchToken = ({ openToken, tokens, defaultActiveIndex }) => {
           <Image
             src={images.close}
             alt="close"
-            width={50}
-            height={50}
+            width={60}
+            height={60}
             onClick={() => openToken(false)}
+            style={{ cursor: "pointer" }}
           />
         </div>
 

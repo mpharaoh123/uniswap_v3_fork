@@ -3,9 +3,9 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 
 // INTERNAL IMPORT
 import images from "../../assets";
-import { SearchToken, Token } from "../index";
-import Style from "./HeroSection.module.css";
 import { poolData } from "../../Context/constants";
+import { SearchToken, TokenSwap } from "../index";
+import Style from "./HeroSection.module.css";
 
 // CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
@@ -20,6 +20,9 @@ const HeroSection = ({}) => {
   const [inputAmount, setInputAmount] = useState("");
   const [outputAmount, setOutputAmount] = useState("");
   const timeoutRef = useRef(null);
+
+  const [deadline, setDeadline] = useState(10);
+  const [slippage, setSlippage] = useState(0.05);
 
   const {
     connectWallet,
@@ -83,32 +86,27 @@ const HeroSection = ({}) => {
   useEffect(() => {
     (async () => {
       const balance0 = await fetchBalances(tokenOne);
-      console.log("balance1", balance0);
-      setTokenOneBalance(balance0);
+      console.log("balance0", balance0);
+      if (balance0) setTokenOneBalance(balance0);
       const balance1 = await fetchBalances(tokenTwo);
       console.log("balance1", balance1);
-      setTokenTwoBalance(balance1);
+      if (balance1) setTokenTwoBalance(balance1);
     })();
   }, [account, tokenOne, tokenTwo]);
 
   const callOutPut = async (inputAmount) => {
-    const deadline = Math.floor(Date.now() / 1000) + 300; // 当前时间戳加上 5 分钟
-    const slippageAmount = 25;
-
     const data = await swapUpdatePrice(
       tokenOne,
       tokenTwo,
       inputAmount,
-      slippageAmount,
+      slippage,
       deadline,
       account
     );
-    // console.log("data", data);
-
     setTokenSwapOutPut(Number(data[1]).toFixed(6));
     setSearch(false);
 
-    const outputAmount = await getPrice(inputAmount, tokenOne, tokenTwo, 3000); // todo 传fee
+    const outputAmount = await getPrice(inputAmount, tokenOne, tokenTwo, 3000); //v3中fee最常用3000, 即0.3%
     console.log("outputAmount", outputAmount);
     setOutputAmount(outputAmount);
     const message = `${inputAmount} ${tokenOne.symbol} = ${Number(
@@ -130,6 +128,7 @@ const HeroSection = ({}) => {
               width={50}
               height={50}
               onClick={() => setOpenSetting(true)}
+              style={{ cursor: "pointer" }}
             />
           </div>
         </div>
@@ -144,7 +143,10 @@ const HeroSection = ({}) => {
               setInputAmount(value ? parseFloat(value) : ""); // 更新 inputAmount
             }}
           />
-          <button onClick={() => setOpenTokenOne(true)}>
+          <button
+            style={{ cursor: "pointer" }}
+            onClick={() => setOpenTokenOne(true)}
+          >
             <Image
               src={images.image || images.etherlogo}
               width={20}
@@ -152,10 +154,7 @@ const HeroSection = ({}) => {
               alt="ether"
             />
             {tokenOne.symbol}
-            <small>
-              {/* {parseFloat(tokenOne.tokenBalance).toFixed(2)} */}
-              {parseFloat(tokenOneBalance).toFixed(2)}
-            </small>
+            <small>{parseFloat(tokenOneBalance).toFixed(2)}</small>
           </button>
         </div>
 
@@ -165,15 +164,18 @@ const HeroSection = ({}) => {
             {search ? (
               <Image
                 src={images.loading}
-                width={100}
-                height={40}
+                width={50}
+                height={20}
                 alt="loading"
               />
             ) : (
               tokenSwapOutPut
             )}
           </p>
-          <button onClick={() => setOpenTokensTwo(true)}>
+          <button
+            style={{ cursor: "pointer" }}
+            onClick={() => setOpenTokensTwo(true)}
+          >
             <Image
               src={tokenTwo.image || images.etherlogo}
               width={20}
@@ -181,15 +183,12 @@ const HeroSection = ({}) => {
               alt="ether"
             />
             {tokenTwo.symbol}
-            <small>
-              {/* {parseFloat(tokenTwo.tokenBalance).toFixed(2)} */}
-              {parseFloat(tokenTwoBalance).toFixed(2)}
-            </small>
+            <small>{parseFloat(tokenTwoBalance).toFixed(2)}</small>
           </button>
         </div>
 
         {search ? (
-          <Image src={images.loading} width={100} height={40} alt="loading" />
+          <Image src={images.loading} width={50} height={20} alt="loading" />
         ) : (
           poolMessage
         )}
@@ -202,11 +201,13 @@ const HeroSection = ({}) => {
                 tokenIn: tokenOne,
                 tokenOut: tokenTwo,
                 amountInNum: inputAmount,
-                slippage: 0.01,
-                deadline: Math.floor(Date.now() / 1000) + 600,
+                slippage: slippage,
+                deadline: Math.floor(Date.now() / 1000) + deadline * 60,
               });
-              setInputAmount(result.tokenInBalanceAfterSwap);
-              setOutputAmount(result.tokenOutBalanceAfterSwap);
+              if (result) {
+                setInputAmount(result.tokenInBalanceAfterSwap);
+                setOutputAmount(result.tokenOutBalanceAfterSwap);
+              }
             }}
           >
             Swap
@@ -221,7 +222,15 @@ const HeroSection = ({}) => {
         )}
       </div>
 
-      {openSetting && <Token setOpenSetting={setOpenSetting} />}
+      {openSetting && (
+        <TokenSwap
+          setOpenSetting={setOpenSetting}
+          slippage={slippage}
+          setSlippage={setSlippage}
+          deadline={deadline}
+          setDeadline={setDeadline}
+        />
+      )}
 
       {openTokenOne && (
         <SearchToken
