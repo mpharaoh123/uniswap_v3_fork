@@ -14,11 +14,11 @@ const SwapSection = ({}) => {
   const [openSetting, setOpenSetting] = useState(false);
   const [openTokenOne, setOpenTokenOne] = useState(false);
   const [openTokensTwo, setOpenTokensTwo] = useState(false);
-  const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
-  const [poolMessage, setPoolMessage] = useState("");
   const [search, setSearch] = useState(false);
   const [inputAmount, setInputAmount] = useState("");
   const [outputAmount, setOutputAmount] = useState("");
+  const [tokenSwapOutPut, setTokenSwapOutPut] = useState(0);
+  const [poolMessage, setPoolMessage] = useState("");
   const timeoutRef = useRef(null);
 
   const [deadline, setDeadline] = useState(10);
@@ -86,11 +86,11 @@ const SwapSection = ({}) => {
   useEffect(() => {
     (async () => {
       const balance0 = await fetchBalances(tokenOne);
-      console.log("balance0", balance0);
       if (balance0) setTokenOneBalance(balance0);
+      console.log("balance0", balance0);
       const balance1 = await fetchBalances(tokenTwo);
-      console.log("balance1", balance1);
       if (balance1) setTokenTwoBalance(balance1);
+      console.log("balance1", balance1);
     })();
   }, [account, tokenOne, tokenTwo]);
 
@@ -140,7 +140,7 @@ const SwapSection = ({}) => {
             value={inputAmount} // 添加 value 属性以绑定输入值
             onChange={(e) => {
               const value = e.target.value;
-              setInputAmount(value ? parseFloat(value) : ""); // 更新 inputAmount
+              setInputAmount(value ? value : ""); // 更新 inputAmount
             }}
           />
           <button
@@ -205,8 +205,15 @@ const SwapSection = ({}) => {
                 deadline: Math.floor(Date.now() / 1000) + deadline * 60,
               });
               if (result) {
-                setInputAmount(result.tokenInBalanceAfterSwap);
-                setOutputAmount(result.tokenOutBalanceAfterSwap);
+                setInputAmount("");
+                setOutputAmount("");
+                setPoolMessage("");
+                setTokenSwapOutPut("0");
+                const balance0 = await fetchBalances(tokenOne);
+                if (balance0) setTokenOneBalance(balance0);
+                const balance1 = await fetchBalances(tokenTwo);
+                if (balance1) setTokenTwoBalance(balance1);
+                // setOutputAmount(result.tokenOutBalanceAfterSwap);
               }
             }}
           >

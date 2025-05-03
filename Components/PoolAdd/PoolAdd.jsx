@@ -15,14 +15,14 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
   const [active, setActive] = useState(1);
   const [openFee, setOpenFee] = useState(false);
-  const [rangeLower, setRangeLower] = useState(2);
-  const [rangeUpper, setRangeUpper] = useState(2);
+  const [rangeLower, setRangeLower] = useState();
+  const [rangeUpper, setRangeUpper] = useState();
   // const [minPrice, setMinPrice] = useState(0);
   // const [maxPrice, setMaxPrice] = useState(0);
 
   const [deadline, setDeadline] = useState(10); //默认10min
-  const [tokenAmountOne, setTokenAmountOne] = useState(1);
-  const [tokenAmountTwo, setTokenAmountTwo] = useState(1800);
+  const [tokenAmountOne, setTokenAmountOne] = useState();
+  const [tokenAmountTwo, setTokenAmountTwo] = useState();
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
   const [liquidityInfos, setLiquidityInfos] = useState({});

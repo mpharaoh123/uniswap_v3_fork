@@ -575,13 +575,7 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 检查代币余额是否足够
       if (parseFloat(formatBalance0) < parseFloat(amount0Desired)) {
-        console.log(111);
-        console.log(token0.tokenAddress.toLowerCase());
-        console.log(WETH_ADDRESS.toLowerCase());
-
         if (token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
-          console.log(333);
-
           // 如果是 WETH 且余额不足，则进行 WETH 存款
           console.log("Depositing WETH for token0...");
           await depositWETH(
@@ -589,8 +583,6 @@ export const SwapTokenContextProvider = ({ children }) => {
             parseFloat(amount0Desired) - parseFloat(formatBalance0)
           );
         } else {
-          console.log(444);
-
           alert(
             `Insufficient ${token0.symbol} balance. Available: ${formatBalance0}, Required: ${amount0Desired}`
           );
@@ -599,8 +591,6 @@ export const SwapTokenContextProvider = ({ children }) => {
       }
 
       if (parseFloat(formatBalance1) < parseFloat(amount1Desired)) {
-        console.log(222);
-
         if (token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
           // 如果是 WETH 且余额不足，则进行 WETH 存款
           console.log("Depositing WETH for token1...");

@@ -25,6 +25,7 @@ bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 /*
   npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet2.js
+  通过指定 amount0Desired，用 quoterContract 算出 amount1Desired 来添加流动性
 */
 
 const token0 = tokenListMainnet[1]; //0为weth

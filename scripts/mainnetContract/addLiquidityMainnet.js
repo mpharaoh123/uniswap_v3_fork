@@ -24,6 +24,7 @@ bn.config({ EXPONENTIAL_AT: 999999, DECIMAL_PLACES: 40 });
 
 /*
   npx hardhat run --network localhost scripts/mainnetContract/addLiquidityMainnet.js
+  通过指定要添加的流动性数量，算出 amount0Desired 和 amount1Desired 来添加流动性
 */
 
 const token0 = tokenListMainnet[1]; //0为weth
@@ -259,7 +260,7 @@ async function main(token0, token1, liquidityAmount) {
     token0: token0.id,
     token1: token1.id,
     fee: poolData.fee,
- tickLower: nearestUsableTick(poolData.tick - range, poolData.tickSpacing),
+    tickLower: nearestUsableTick(poolData.tick - range, poolData.tickSpacing),
     tickUpper: nearestUsableTick(poolData.tick + range, poolData.tickSpacing),
     amount0Desired: amount0Desired,
     amount1Desired: amount1Desired,
