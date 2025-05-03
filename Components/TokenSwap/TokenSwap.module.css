@@ -53,12 +53,6 @@
   color: #cff80b;
 }
 
-.Token_box_toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
 @media only screen and (max-width: 35em) {
   .Token {
     width: 100%;

@@ -92,7 +92,6 @@ export const SwapTokenContextProvider = ({ children }) => {
     deadline,
     account
   ) => {
-
     const chainId = 1;
     const provider = new ethers.providers.JsonRpcProvider(
       // "https://rpc.ankr.com/eth" //用这个url，只能获取其中一个代币为weth时，另一个代币的价格，其他代币会报ProviderGasError
@@ -576,17 +575,57 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // 检查代币余额是否足够
       if (parseFloat(formatBalance0) < parseFloat(amount0Desired)) {
-        alert(
-          `Insufficient ${token0.symbol} balance. Available: ${formatBalance0}, Required: ${amount0Desired}`
-        );
-        return;
+        console.log(111);
+        console.log(token0.tokenAddress.toLowerCase());
+        console.log(WETH_ADDRESS.toLowerCase());
+
+        if (token0.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
+          console.log(333);
+
+          // 如果是 WETH 且余额不足，则进行 WETH 存款
+          console.log("Depositing WETH for token0...");
+          await depositWETH(
+            token0Contract,
+            parseFloat(amount0Desired) - parseFloat(formatBalance0)
+          );
+        } else {
+          console.log(444);
+
+          alert(
+            `Insufficient ${token0.symbol} balance. Available: ${formatBalance0}, Required: ${amount0Desired}`
+          );
+          return;
+        }
       }
 
       if (parseFloat(formatBalance1) < parseFloat(amount1Desired)) {
-        alert(
-          `Insufficient ${token1.symbol} balance. Available: ${formatBalance1}, Required: ${amount1Desired}`
+        console.log(222);
+
+        if (token1.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
+          // 如果是 WETH 且余额不足，则进行 WETH 存款
+          console.log("Depositing WETH for token1...");
+          await depositWETH(
+            token1Contract,
+            parseFloat(amount1Desired) - parseFloat(formatBalance1)
+          );
+        } else {
+          alert(
+            `Insufficient ${token1.symbol} balance. Available: ${formatBalance1}, Required: ${amount1Desired}`
+          );
+          return;
+        }
+      }
+
+      // WETH 存款逻辑函数
+      async function depositWETH(tokenContract, amountToDeposit) {
+        const depositAmount = ethers.utils.parseEther(
+          amountToDeposit.toString()
         );
-        return;
+        const tx = await tokenContract
+          .connect(signer)
+          .deposit({ value: depositAmount });
+        await tx.wait();
+        console.log(`Deposited ${amountToDeposit} WETH`);
       }
 
       amount0Desired = ethers.utils

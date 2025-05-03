@@ -15,8 +15,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
   const [active, setActive] = useState(1);
   const [openFee, setOpenFee] = useState(false);
-  const [rangeLower, setRangeLower] = useState(0);
-  const [rangeUpper, setRangeUpper] = useState(0);
+  const [rangeLower, setRangeLower] = useState(2);
+  const [rangeUpper, setRangeUpper] = useState(2);
   // const [minPrice, setMinPrice] = useState(0);
   // const [maxPrice, setMaxPrice] = useState(0);
 
@@ -142,6 +142,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               width={30}
               height={30}
               onClick={() => setClosePool(false)}
+              style={{ cursor: "pointer" }}
             />
           </div>
           <div className={Style.PoolAdd_box_header_right}>
@@ -163,6 +164,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
             <h4>Select Pair</h4>
             <div className={Style.PoolAdd_box_price_left_token}>
               <div
+                style={{ cursor: "pointer" }}
                 className={Style.PoolAdd_box_price_left_token_info}
                 onClick={() => setOpenTokenModelOne(true)}
               >
@@ -177,6 +179,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                 <p>{tokenOne.symbol || "ETH"}</p>
               </div>
               <div
+                style={{ cursor: "pointer" }}
                 className={Style.PoolAdd_box_price_left_token_info}
                 onClick={() => setOpenTokenModelTwo(true)}
               >
@@ -248,7 +251,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               <h4>Deposit Amount</h4>
               <div className={Style.PoolAdd_box_deposit_box}>
                 <input
-                  type="number"
+                  type="text"
                   placeholder={
                     tokenOneBalance ? tokenOneBalance.slice(0, 9) : ""
                   }
@@ -270,7 +273,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
 
               <div className={Style.PoolAdd_box_deposit_box}>
                 <input
-                  type="number"
+                  type="text"
                   placeholder={
                     tokenTwoBalance ? tokenTwoBalance.slice(0, 9) : ""
                   }
@@ -339,11 +342,12 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               <div className={Style.PoolAdd_box_price_right_range_box}>
                 <p>Lower Range</p>
                 <input
+                  className={Style.PoolAdd_box_price_right_range_box_para}
                   type="number"
                   placeholder="0.0"
                   min="0.0"
                   step="0.1"
-                  className={Style.PoolAdd_box_price_right_range_box_para}
+                  value={rangeLower}
                   onChange={(e) => setRangeLower(e.target.value)}
                 />
                 <p>
@@ -355,11 +359,12 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
               <div className={Style.PoolAdd_box_price_right_range_box}>
                 <p>Upper Range</p>
                 <input
+                  className={Style.PoolAdd_box_price_right_range_box_para}
                   type="number"
                   placeholder="0.0"
                   min="0.0"
                   step="0.1"
-                  className={Style.PoolAdd_box_price_right_range_box_para}
+                  value={rangeUpper}
                   onChange={(e) => setRangeUpper(e.target.value)}
                 />
                 <p>

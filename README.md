@@ -1,15 +1,12 @@
+# start app
+
+1. npm run fork:dev
+2. npx hardhat run --network localhost scripts/mainnetContract/swapTokenMainnet.js
+
 # code explain
 
-0. node version: 18.12.1
-1. npm i 失败的话，del package-lock.json, del yarn.lock, npm cache clean --force，重试
-2. 不能用 npx hard node 启动节点，节点上还没有部署 usdc, usdt 等主流代币，要用 npm run fork 启动
-
-# scripts command
-
-npx hardhat run --network localhost scripts/01_deployContracts.js
-npx hardhat run --network localhost scripts/02_deployTokens.js
-npx hardhat run --network localhost scripts/03_deployPools.js
-npx hardhat run --network localhost scripts/04_addLiquidity.js
+1. node version: 18.12.1
+2. If npm install fails, delete package-lock.json, delete yarn.lock, run npm cache clean --force, and then retry.
 
 # files to exclude
 

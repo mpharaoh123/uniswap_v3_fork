@@ -5,12 +5,12 @@ import React, { useContext, useEffect, useRef, useState } from "react";
 import images from "../../assets";
 import { poolData } from "../../Context/constants";
 import { SearchToken, TokenSwap } from "../index";
-import Style from "./HeroSection.module.css";
+import Style from "./SwapSection.module.css";
 
 // CONTEXT
 import { SwapTokenContext } from "../../Context/SwapContext";
 
-const HeroSection = ({}) => {
+const SwapSection = ({}) => {
   const [openSetting, setOpenSetting] = useState(false);
   const [openTokenOne, setOpenTokenOne] = useState(false);
   const [openTokensTwo, setOpenTokensTwo] = useState(false);
@@ -117,11 +117,11 @@ const HeroSection = ({}) => {
   };
 
   return (
-    <div className={Style.HeroSection}>
-      <div className={Style.HeroSection_box}>
-        <div className={Style.HeroSection_box_heading}>
+    <div className={Style.SwapSection}>
+      <div className={Style.SwapSection_box}>
+        <div className={Style.SwapSection_box_heading}>
           <p>Swap</p>
-          <div className={Style.HeroSection_box_heading_img}>
+          <div className={Style.SwapSection_box_heading_img}>
             <Image
               src={images.close}
               alt="image"
@@ -133,9 +133,9 @@ const HeroSection = ({}) => {
           </div>
         </div>
 
-        <div className={Style.HeroSection_box_input}>
+        <div className={Style.SwapSection_box_input}>
           <input
-            type="number"
+            type="text"
             placeholder="0"
             value={inputAmount} // 添加 value 属性以绑定输入值
             onChange={(e) => {
@@ -158,7 +158,7 @@ const HeroSection = ({}) => {
           </button>
         </div>
 
-        <div className={Style.HeroSection_box_input}>
+        <div className={Style.SwapSection_box_input}>
           {/* <input type="text" placeholder="0" /> */}
           <p>
             {search ? (
@@ -195,7 +195,7 @@ const HeroSection = ({}) => {
 
         {account ? (
           <button
-            className={Style.HeroSection_box_btn}
+            className={Style.SwapSection_box_btn}
             onClick={async () => {
               const result = await singleSwapToken({
                 tokenIn: tokenOne,
@@ -215,7 +215,7 @@ const HeroSection = ({}) => {
         ) : (
           <button
             onClick={() => connectWallet()}
-            className={Style.HeroSection_box_btn}
+            className={Style.SwapSection_box_btn}
           >
             Connect Wallet
           </button>
@@ -254,4 +254,4 @@ const HeroSection = ({}) => {
   );
 };
 
-export default HeroSection;
+export default SwapSection;

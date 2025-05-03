@@ -1,4 +1,3 @@
-import userStorgeData from "./UserStorageData.json";
 import WETH9 from "./WETH9.json";
 import poolDataList from "./poolData.json";
 
@@ -14,17 +13,6 @@ export const NON_FUNGABLE_POSITION_MANAGER_ADDRESS =
 export const V3_SWAP_QUOTER_ADDRESS =
   "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6";
 export const FACTORY_ADDRESS = "0x1F98431c8aD98523631AE4a59f267346ea31F984";
-
 export const ERC20_ABI = require("@uniswap/v2-core/build/IERC20.json").abi;
-
-//IWETH
-export const WETH_ADDRESS = "0x2d13826359803522cCe7a4Cfa2c1b582303DD0B4";
+export const WETH_ADDRESS = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
 export const WETH_ABI = WETH9.abi;
-
-export const MainnetIWETHAddress = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2";
-
-//USER STORAGE DAta
-
-export const userStorageDataAddrss =
-  "0xABc84968376556B5e5B3C3bda750D091a06De536";
-export const userStorageDataABI = userStorgeData.abi;

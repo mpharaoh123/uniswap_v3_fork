@@ -1,4 +1,4 @@
-.HeroSection {
+.SwapSection {
   width: 90%;
   margin: 2rem auto;
   display: flex;
@@ -7,7 +7,7 @@
   position: relative;
 }
 
-.HeroSection_box {
+.SwapSection_box {
   margin-top: 5rem;
   background-color: #1e1e1e;
   padding: 1rem;
@@ -15,13 +15,13 @@
   width: 30rem;
 }
 
-.HeroSection_box_heading {
+.SwapSection_box_heading {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.HeroSection_box_input {
+.SwapSection_box_input {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,7 +31,7 @@
   margin-top: 1rem;
 }
 
-.HeroSection_box_input input {
+.SwapSection_box_input input {
   border: 0;
   outline: 0;
   background-color: transparent;
@@ -39,7 +39,7 @@
   font-size: 1.2rem;
 }
 
-.HeroSection_box_input button {
+.SwapSection_box_input button {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -54,11 +54,11 @@
   white-space: nowrap; /* 防止文本换行 */
 }
 
-.HeroSection_box_input button span {
+.SwapSection_box_input button span {
   text-overflow: ellipsis; /* 显示省略号 */
 }
 
-.HeroSection_box_btn {
+.SwapSection_box_btn {
   background-color: #cff80b;
   border: 0;
   outline: 0;
@@ -71,14 +71,14 @@
 }
 
 @media only screen and (max-width: 35em) {
-  .HeroSection {
+  .SwapSection {
     width: 95%;
   }
-  .HeroSection_box {
+  .SwapSection_box {
     width: 95%;
   }
 
-  .HeroSection_box_input input {
+  .SwapSection_box_input input {
     width: 50%;
   }
 }

@@ -24,7 +24,11 @@
 }
 .NavBar_box_left_menu_item {
   font-size: 1.2rem;
-  color: #cff80b;
+  color: gray; /* 设置默认颜色为灰色 */
+  transition: color 0.3s ease; /* 添加颜色过渡效果 */
+}
+.NavBar_box_left_menu_item:hover {
+  color: white; /* 鼠标悬停时颜色变为白色 */
 }
 
 .NavBar_box_right {
