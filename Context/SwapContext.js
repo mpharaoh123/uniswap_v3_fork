@@ -282,7 +282,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         amountOutMinimum,
         sqrtPriceLimitX96: ethers.constants.Zero, // 价格限制（可以设置为0，表示没有限制）
       };
-      console.log("params", params);
+      // console.log("params", params);
 
       // 执行 swap
       const swapTx = await router.exactInputSingle(params, {
@@ -608,9 +608,9 @@ export const SwapTokenContextProvider = ({ children }) => {
 
       // WETH 存款逻辑函数
       async function depositWETH(tokenContract, amountToDeposit) {
-        const depositAmount = ethers.utils.parseEther(
-          amountToDeposit.toString()
-        );
+        // 将浮点数转换为字符串形式的十进制数
+        const amountToDepositString = Number(amountToDeposit).toFixed(18); // 假设最多支持18位小数
+        const depositAmount = ethers.utils.parseEther(amountToDepositString);
         const tx = await tokenContract
           .connect(signer)
           .deposit({ value: depositAmount });
@@ -630,13 +630,17 @@ export const SwapTokenContextProvider = ({ children }) => {
         token0,
         balance0,
         amount0Desired,
-        token0Contract
+        token0Contract,
+        signer,
+        address
       );
       balance1 = await checkAndDepositWETH(
         token1,
         balance1,
         amount1Desired,
-        token1Contract
+        token1Contract,
+        signer,
+        address
       );
 
       // 检查余额是否仍然不足
@@ -693,7 +697,7 @@ export const SwapTokenContextProvider = ({ children }) => {
         recipient: address,
         deadline: Math.floor(Date.now() / 1000) + 60 * deadline,
       };
-      console.log("params", params);
+      // console.log("params", params);
 
       const tx = await nonfungiblePositionManager
         .connect(signer)
@@ -844,7 +848,9 @@ export const SwapTokenContextProvider = ({ children }) => {
     token,
     balance,
     amountDesired,
-    tokenContract
+    tokenContract,
+    signer,
+    address
   ) => {
     if (token.tokenAddress.toLowerCase() === WETH_ADDRESS.toLowerCase()) {
       if (ethers.BigNumber.from(balance.toString()).lt(amountDesired)) {

@@ -81,10 +81,6 @@ async function calculateLiquidityAndAmounts(
   const sqrtPriceLower = TickMath.getSqrtRatioAtTick(tickLower).toString();
   const sqrtPriceCurrent = poolData.sqrtPriceX96.toString(); // 确保精度一致
 
-  console.log(111, sqrtPriceUpper);
-  console.log(222, sqrtPriceLower);
-  console.log(333, sqrtPriceCurrent);
-
   let liquidity;
   let calculatedAmount0;
   let calculatedAmount1;

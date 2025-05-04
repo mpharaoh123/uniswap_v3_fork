@@ -15,14 +15,14 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
   const [openTokenModelTwo, setOpenTokenModelTwo] = useState(false);
   const [active, setActive] = useState(1);
   const [openFee, setOpenFee] = useState(false);
-  const [rangeLower, setRangeLower] = useState();
-  const [rangeUpper, setRangeUpper] = useState();
+  const [rangeLower, setRangeLower] = useState(0);
+  const [rangeUpper, setRangeUpper] = useState(0);
   // const [minPrice, setMinPrice] = useState(0);
   // const [maxPrice, setMaxPrice] = useState(0);
 
   const [deadline, setDeadline] = useState(10); //默认10min
-  const [tokenAmountOne, setTokenAmountOne] = useState();
-  const [tokenAmountTwo, setTokenAmountTwo] = useState();
+  const [tokenAmountOne, setTokenAmountOne] = useState("");
+  const [tokenAmountTwo, setTokenAmountTwo] = useState("");
   const tokenOneTimeoutRef = useRef(null); // 用于第一个输入框的定时器
   const tokenTwoTimeoutRef = useRef(null); // 用于第二个输入框的定时器
   const [liquidityInfos, setLiquidityInfos] = useState({});
@@ -76,7 +76,7 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
       feeSystem: 10000,
     },
   ];
-  const [fee, setFee] = useState(feePairs[0].feeSystem);
+  const [fee, setFee] = useState(feePairs[1].feeSystem);
 
   useEffect(() => {
     updateLiquidityInfo();
@@ -90,6 +90,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
       const balance1 = await fetchBalances(tokenTwo);
       console.log("balance1", balance1);
       setTokenTwoBalance(balance1);
+      setTokenAmountOne("");
+      setTokenAmountTwo("");
     })();
   }, [account, tokenOne, tokenTwo]);
 
@@ -256,7 +258,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     tokenOneBalance ? tokenOneBalance.slice(0, 9) : ""
                   }
                   value={tokenAmountOne}
-                  onChange={handleTokenAmountOneChange} // 使用防抖逻辑
+                  // onChange={handleTokenAmountOneChange} // 使用防抖逻辑
+                  onChange={(e) => setTokenAmountOne(e.target.value)}
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
@@ -278,7 +281,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                     tokenTwoBalance ? tokenTwoBalance.slice(0, 9) : ""
                   }
                   value={tokenAmountTwo}
-                  onChange={handleTokenAmountTwoChange} // 使用防抖逻辑
+                  // onChange={handleTokenAmountTwoChange} // 使用防抖逻辑
+                  onChange={(e) => setTokenAmountTwo(e.target.value)}
                 />
                 <div className={Style.PoolAdd_box_deposit_box_input}>
                   <p>
@@ -322,8 +326,8 @@ const PoolAdd = ({ setClosePool, createPoolAndAddLiquidity }) => {
                           </li>
                         ) : (
                           <p>
-                            No liquidity amount has been found for the current
-                            trade.
+                            {/* No liquidity amount has been found for the current
+                            trade. */}
                           </p>
                         )
                       )}

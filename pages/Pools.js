@@ -8,7 +8,7 @@ import { SwapTokenContext } from "../Context/SwapContext";
 
 const Pool = () => {
   const { createPoolAndAddLiquidity } = useContext(SwapTokenContext);
-  const [closePool, setClosePool] = useState(true); //todo false
+  const [closePool, setClosePool] = useState(false); //todo false
 
   return (
     <div className={Style.Pool}>

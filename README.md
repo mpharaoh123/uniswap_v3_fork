@@ -1,7 +1,8 @@
 # start app
 
-1. npm run fork:dev
-2. npx hardhat run --network localhost scripts/mainnetContract/swapTokenMainnet.js
+1. Terminal: npm run fork:dev
+2. Terminal: npx hardhat run --network localhost scripts/mainnetContract/swapTokenMainnet.js -- Swap ETH quickly for other tokens
+3. open url: http://localhost:3000/ 
 
 # code explain
 
